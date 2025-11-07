@@ -1,0 +1,1525 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario de Barridos - Noviembre 2025 - Parque de la Paz</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --teal-principal: #008080;
+            --teal-oscuro: #006666;
+            --teal-claro: #e0f2f1;
+            --teal-medio: #4db6ac;
+            --dorado: #FFD700;
+            --rojo: #e74c3c;
+            --verde: #2ecc71;
+            --texto-oscuro: #004d40;
+            --blanco: #ffffff;
+            --sombra: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f3443 0%, #34e89e 100%);
+            color: var(--texto-oscuro);
+            line-height: 1.6;
+            padding: 15px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 100%;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .calendario-section, .form-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: var(--sombra);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        
+        .form-section {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--teal-principal) 0%, var(--teal-oscuro) 100%);
+            padding: 20px 15px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.1)"/></svg>');
+            background-size: cover;
+        }
+        
+        h1 {
+            color: white;
+            margin-bottom: 8px;
+            font-size: 1.5rem;
+            position: relative;
+        }
+        
+        .subtitle {
+            font-size: 1rem;
+            font-weight: normal;
+            color: white;
+            opacity: 0.9;
+            position: relative;
+        }
+        
+        .calendario-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: var(--teal-claro);
+            border-bottom: 1px solid var(--teal-medio);
+        }
+        
+        .mes-anio {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--teal-oscuro);
+        }
+        
+        .controles-calendario button {
+            background: var(--teal-principal);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+            margin-left: 10px;
+        }
+        
+        .controles-calendario button:hover {
+            background: var(--teal-oscuro);
+            transform: scale(1.1);
+        }
+        
+        .controles-calendario button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .dias-semana {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            background: var(--teal-principal);
+            color: white;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .dia-semana {
+            padding: 12px 0;
+            font-size: 0.9rem;
+        }
+        
+        .dias-mes {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: var(--teal-claro);
+        }
+        
+        .dia {
+            background: white;
+            min-height: 80px;
+            padding: 8px 5px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .dia:hover {
+            background: #f5f5f5;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            z-index: 1;
+        }
+        
+        .dia.otro-mes {
+            background: #f9f9f9;
+            color: #ccc;
+        }
+        
+        .dia.actual {
+            background: var(--teal-claro);
+            font-weight: 700;
+        }
+        
+        .dia.disponible {
+            border-left: 4px solid var(--teal-principal);
+        }
+        
+        .dia.agotado {
+            background: #f8d7da;
+            border-left: 4px solid var(--rojo);
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        
+        .dia.agotado:hover {
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .dia.sin-barridos {
+            background: #f9f9f9;
+            cursor: default;
+        }
+        
+        .dia.sin-barridos:hover {
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .dia.premiacion {
+            background: #fff3cd;
+            border-left: 4px solid var(--dorado);
+            cursor: default;
+        }
+        
+        .dia.premiacion:hover {
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .numero-dia {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+        
+        .eventos-dia {
+            flex-grow: 1;
+            font-size: 0.7rem;
+        }
+        
+        .evento {
+            background: var(--teal-medio);
+            color: white;
+            padding: 2px 4px;
+            border-radius: 3px;
+            margin-bottom: 2px;
+            font-size: 0.65rem;
+        }
+        
+        .contador-cupos {
+            margin-top: 3px;
+            font-size: 0.7rem;
+            text-align: center;
+            padding: 3px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        
+        .cupos-disponibles {
+            background: var(--verde);
+            color: white;
+        }
+        
+        .cupos-agotados {
+            background: var(--rojo);
+            color: white;
+        }
+        
+        .cupos-pocos {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .premiacion-texto {
+            background: var(--dorado);
+            color: var(--texto-oscuro);
+            font-size: 0.65rem;
+            text-align: center;
+            padding: 4px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        
+        .horarios-disponibles {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .horario-option {
+            background: var(--teal-claro);
+            border: 1px solid var(--teal-medio);
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .horario-option:hover {
+            background: var(--teal-medio);
+            color: white;
+        }
+        
+        .horario-option.seleccionado {
+            background: var(--teal-principal);
+            color: white;
+        }
+        
+        .horario-option.agotado {
+            background: #f8d7da;
+            color: #721c24;
+            cursor: not-allowed;
+        }
+        
+        .horario-option.ya-registrado {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px dashed #0c5460;
+            cursor: not-allowed;
+        }
+        
+        .form-content {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: var(--texto-oscuro);
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--teal-claro);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--teal-medio);
+            box-shadow: 0 0 0 3px rgba(77, 182, 172, 0.2);
+        }
+        
+        .input-error {
+            border-color: var(--rojo) !important;
+            box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.2) !important;
+        }
+        
+        .error-message {
+            color: var(--rojo);
+            font-size: 0.8rem;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .resumen-registro {
+            background: var(--teal-claro);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 10px;
+            border-left: 4px solid var(--teal-principal);
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .resumen-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .lista-registros {
+            flex-grow: 1;
+            overflow-y: auto;
+            max-height: 150px;
+        }
+        
+        .registro-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--teal-medio);
+        }
+        
+        .registro-item:last-child {
+            border-bottom: none;
+        }
+        
+        .eliminar-item {
+            color: #d32f2f;
+            cursor: pointer;
+            font-weight: bold;
+            margin-left: 10px;
+            font-size: 1.2rem;
+        }
+        
+        button.registro-btn {
+            background: linear-gradient(to right, var(--teal-principal), var(--teal-oscuro));
+            color: white;
+            border: none;
+            padding: 16px 30px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 20px;
+            box-shadow: 0 4px 10px rgba(0, 128, 128, 0.3);
+        }
+        
+        button.registro-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 128, 128, 0.4);
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .checkbox-group input {
+            width: auto;
+            margin-right: 10px;
+            accent-color: var(--teal-principal);
+        }
+        
+        footer {
+            background-color: var(--teal-claro);
+            padding: 15px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--texto-oscuro);
+            border-top: 1px solid var(--teal-medio);
+        }
+        
+        .footer-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .footer-contact {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .whatsapp-link {
+            color: var(--teal-oscuro);
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+            padding: 5px 10px;
+            border-radius: 20px;
+            background: rgba(37, 211, 102, 0.1);
+        }
+        
+        .whatsapp-link:hover {
+            background: rgba(37, 211, 102, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .badge {
+            display: inline-block;
+            background: var(--dorado);
+            color: var(--texto-oscuro);
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin-left: 5px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            animation: modalAppear 0.3s ease-out;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        @keyframes modalAppear {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--teal-claro);
+            padding-bottom: 10px;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--teal-oscuro);
+        }
+        
+        .info-cupos {
+            background: var(--teal-claro);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .advertencia {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 0.9rem;
+            color: #856404;
+        }
+        
+        .texto-mayusculas {
+            text-transform: uppercase;
+        }
+        
+        /* Estilos para la tabla de GPS */
+        .gps-section {
+            padding: 15px;
+            background: var(--teal-claro);
+            border-top: 1px solid var(--teal-medio);
+        }
+        
+        .gps-title {
+            text-align: center;
+            margin-bottom: 15px;
+            color: var(--teal-oscuro);
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+        
+        .gps-table-container {
+            width: 100%;
+            overflow-x: auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .gps-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+        
+        .gps-table th {
+            background: var(--teal-principal);
+            color: white;
+            padding: 10px 6px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+        
+        .gps-table td {
+            padding: 8px 6px;
+            text-align: center;
+            border-bottom: 1px solid var(--teal-claro);
+            font-size: 0.75rem;
+        }
+        
+        .gps-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .gps-table tr:hover {
+            background: var(--teal-claro);
+        }
+        
+        .gps-link {
+            color: var(--teal-oscuro);
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            transition: color 0.3s;
+            font-size: 0.75rem;
+        }
+        
+        .gps-link:hover {
+            color: var(--teal-principal);
+            text-decoration: underline;
+        }
+        
+        .sector-title {
+            font-weight: 600;
+            color: var(--teal-oscuro);
+        }
+        
+        .fecha-barrido {
+            font-size: 0.7rem;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .mes-no-disponible {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+        
+        .mes-no-disponible i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #ccc;
+        }
+        
+        /* Estilos para pantallas más grandes */
+        @media (min-width: 768px) {
+            .container {
+                max-width: 1400px;
+                margin: 0 auto;
+                grid-template-columns: 1fr 400px;
+                display: grid;
+            }
+            
+            .footer-info {
+                flex-direction: row;
+                gap: 10px;
+            }
+            
+            .gps-table th,
+            .gps-table td {
+                padding: 10px 8px;
+                font-size: 0.8rem;
+            }
+            
+            .gps-link {
+                font-size: 0.8rem;
+            }
+            
+            .fecha-barrido {
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <section class="calendario-section">
+            <header>
+                <h1>CALENDARIO DE BARRIDOS</h1>
+                <p class="subtitle">Noviembre 2025 - Parque de la Paz</p>
+            </header>
+            
+            <div class="calendario-header">
+                <div class="mes-anio" id="mesAnio">Noviembre 2025</div>
+                <div class="controles-calendario">
+                    <button id="prevMes"><i class="fas fa-chevron-left"></i></button>
+                    <button id="nextMes"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
+            
+            <div class="dias-semana">
+                <div class="dia-semana">Dom</div>
+                <div class="dia-semana">Lun</div>
+                <div class="dia-semana">Mar</div>
+                <div class="dia-semana">Mié</div>
+                <div class="dia-semana">Jue</div>
+                <div class="dia-semana">Vie</div>
+                <div class="dia-semana">Sáb</div>
+            </div>
+            
+            <div class="dias-mes" id="diasMes">
+                <!-- Los días se generarán con JavaScript -->
+            </div>
+            
+            <!-- Tabla de Puntos GPS -->
+            <div class="gps-section">
+                <h2 class="gps-title">PUNTOS GPS SECTORES</h2>
+                <div class="gps-table-container">
+                    <table class="gps-table">
+                        <thead>
+                            <tr>
+                                <th># BARRIDO</th>
+                                <th>FECHA</th>
+                                <th>MAÑANA</th>
+                                <th>DIRECCIÓN</th>
+                                <th>GPS</th>
+                                <th>TARDE</th>
+                                <th>DIRECCIÓN</th>
+                                <th>GPS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="sector-title">BIZ - 1</td>
+                                <td class="fecha-barrido">10 Nov</td>
+                                <td>09:00 - 12:00</td>
+                                <td>BOYACÁ</td>
+                                <td><a href="https://maps.app.goo.gl/g77pSMT7x1wTxFU3A" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                                <td>14:30 - 17:30</td>
+                                <td>SAUCES 8</td>
+                                <td><a href="https://maps.app.goo.gl/ujjSUP9NXfKyiKbM9" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                            </tr>
+                            <tr>
+                                <td class="sector-title">BIZ - 2</td>
+                                <td class="fecha-barrido">12 Nov</td>
+                                <td>09:00 - 12:00</td>
+                                <td>9 DE OCTUBRE</td>
+                                <td><a href="https://maps.app.goo.gl/jT8P7CmtyBb14idu8" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                                <td>14:30 - 17:30</td>
+                                <td>SAUCES 6</td>
+                                <td><a href="https://maps.app.goo.gl/27CAf75fuAeMHgAJ9" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                            </tr>
+                            <tr>
+                                <td class="sector-title">BIZ - 3</td>
+                                <td class="fecha-barrido">13 Nov</td>
+                                <td>09:00 - 12:00</td>
+                                <td>OLMEDO</td>
+                                <td><a href="https://maps.app.goo.gl/QWHBYJTr3DMztiz18" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                                <td>14:30 - 17:30</td>
+                                <td>SAUCES 5</td>
+                                <td><a href="https://maps.app.goo.gl/27CAf75fuAeMHgAJ9" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                            </tr>
+                            <tr>
+                                <td class="sector-title">BIZ - 4</td>
+                                <td class="fecha-barrido">14 Nov</td>
+                                <td>09:00 - 12:00</td>
+                                <td>BAHIA</td>
+                                <td><a href="https://maps.app.goo.gl/YziZ8R9ZBFyQf4B89" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                                <td>14:30 - 17:30</td>
+                                <td>SAUCES 3</td>
+                                <td><a href="https://maps.app.goo.gl/27CAf75fuAeMHgAJ9" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                            </tr>
+                            <tr>
+                                <td class="sector-title">BIZ - 5</td>
+                                <td class="fecha-barrido">17 Nov</td>
+                                <td>09:00 - 12:00</td>
+                                <td>MUCHO LOTE 1</td>
+                                <td><a href="https://maps.app.goo.gl/ukASwjhkj1bLZ4ML8" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                                <td>14:30 - 17:30</td>
+                                <td>SAUCES 4</td>
+                                <td><a href="https://maps.app.goo.gl/KGcRCcmKdmuLxaqDA" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                            </tr>
+                            <tr>
+                                <td class="sector-title">BIZ - 6</td>
+                                <td class="fecha-barrido">18 Nov</td>
+                                <td>09:00 - 12:00</td>
+                                <td>VERGELES</td>
+                                <td><a href="https://maps.app.goo.gl/t5uYsgKhHqPp2ood9" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                                <td>14:30 - 17:30</td>
+                                <td>SAMANES</td>
+                                <td><a href="https://maps.app.goo.gl/q8sj8dH8GzZauKwW7" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                            </tr>
+                            <tr>
+                                <td class="sector-title">BIZ - 7</td>
+                                <td class="fecha-barrido">19 Nov</td>
+                                <td>09:00 - 12:00</td>
+                                <td>4 MANZANAS</td>
+                                <td><a href="https://maps.app.goo.gl/nbunuthYbus8ip2o7" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                                <td>14:30 - 17:30</td>
+                                <td>GUAYACANES</td>
+                                <td><a href="https://maps.app.goo.gl/q8sj8dH8GzZauKwW7" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                            </tr>
+                            <tr>
+                                <td class="sector-title">BIZ - 8</td>
+                                <td class="fecha-barrido">20 Nov</td>
+                                <td>09:00 - 12:00</td>
+                                <td>CENTENARIO</td>
+                                <td><a href="https://maps.app.goo.gl/o5eTeoGGyqDnUVQQA" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                                <td>14:30 - 17:30</td>
+                                <td>SAUCES 9</td>
+                                <td><a href="https://maps.app.goo.gl/27CAf75fuAeMHgAJ9" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                            </tr>
+                            <tr>
+                                <td class="sector-title">BIZ - 9</td>
+                                <td class="fecha-barrido">21 Nov</td>
+                                <td>09:00 - 12:00</td>
+                                <td>7 LAGOS</td>
+                                <td><a href="https://maps.app.goo.gl/h36GjVRBygTKP8CH6" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                                <td>14:30 - 17:30</td>
+                                <td>SAUCES 7</td>
+                                <td><a href="https://maps.app.goo.gl/pXxncR1giKDRb5Bt8" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                            </tr>
+                            <tr>
+                                <td class="sector-title">BIZ - 10</td>
+                                <td class="fecha-barrido">24 Nov</td>
+                                <td>09:00 - 12:00</td>
+                                <td>PRADERA 1</td>
+                                <td><a href="https://maps.app.goo.gl/f3dXWBibaMS6VJDSA" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                                <td>14:30 - 17:30</td>
+                                <td>SAUCES 2</td>
+                                <td><a href="https://maps.app.goo.gl/kxUHsqjXRxysbaWw8" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                            </tr>
+                            <tr>
+                                <td class="sector-title">BIZ - 11</td>
+                                <td class="fecha-barrido">25 Nov</td>
+                                <td>09:00 - 12:00</td>
+                                <td>PRADERA 2</td>
+                                <td><a href="https://maps.app.goo.gl/hc1Uaa9MFVnYUXmu8" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                                <td>14:30 - 17:30</td>
+                                <td>ALBORADA 10</td>
+                                <td><a href="https://maps.app.goo.gl/VjVJpBxVj5kbHLyS6" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                            </tr>
+                            <tr>
+                                <td class="sector-title">BIZ - 12</td>
+                                <td class="fecha-barrido">26 Nov</td>
+                                <td>09:00 - 12:00</td>
+                                <td>FLORESTA</td>
+                                <td><a href="https://maps.app.goo.gl/Q19YeDjmc8xDvvjV9" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                                <td>14:30 - 17:30</td>
+                                <td>ALBORADA 4</td>
+                                <td><a href="https://maps.app.goo.gl/VjVJpBxVj5kbHLyS6" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+        
+        <section class="form-section">
+            <header>
+                <h1>REGISTRO</h1>
+                <p class="subtitle">Complete sus datos</p>
+            </header>
+            
+            <div class="form-content">
+                <div class="info-cupos">
+                    <h3><i class="fas fa-users"></i> Cupos Disponibles</h3>
+                    <p>Cada día tiene <strong>10 cupos</strong> por horario</p>
+                    <p id="estadoCupos">Selecciona un día para ver disponibilidad</p>
+                </div>
+                
+                <div class="advertencia">
+                    <i class="fas fa-exclamation-triangle"></i> 
+                    <strong>Importante:</strong> No puedes registrarte dos veces en el mismo día y horario
+                </div>
+                
+                <div class="form-group">
+                    <label for="codigoAsesor">Código de Asesor *</label>
+                    <input type="text" id="codigoAsesor" name="codigoAsesor" required placeholder="Tu código único de asesor">
+                    <small style="color: #666;">Este código identifica tu registro de forma única</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="nombre">Nombre completo *</label>
+                    <input type="text" id="nombre" name="nombre" required placeholder="INGRESA TU NOMBRE COMPLETO" class="texto-mayusculas">
+                </div>
+                
+                <div class="form-group">
+                    <label for="telefono">Teléfono *</label>
+                    <input type="tel" id="telefono" name="telefono" required placeholder="0XXXXXXXXX" maxlength="10">
+                    <div class="error-message" id="telefonoError">El teléfono debe tener 10 dígitos numéricos y comenzar con 0</div>
+                    <small style="color: #666;">Formato: 0 + 9 dígitos (Ej: 0960601592)</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Correo electrónico *</label>
+                    <input type="email" id="email" name="email" required placeholder="ejemplo@correo.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="equipo">Equipo al que pertenece *</label>
+                    <select id="equipo" name="equipo" required>
+                        <option value="">-- Selecciona tu equipo --</option>
+                        <option value="ASTILLERO">ASTILLERO</option>
+                        <option value="AUTOGESTION">AUTOGESTIÓN</option>
+                        <option value="CAPACITACION">CAPACITACIÓN</option>
+                        <option value="DIGITAL">DIGITAL</option>
+                        <option value="IMPETU">IMPETU</option>
+                        <option value="LEGENDARIOS">LEGENDARIOS</option>
+                        <option value="MILENIUM">MILENIUM</option>
+                        <option value="NUEVO AMANECER">NUEVO AMANECER</option>
+                        <option value="PERLA">PERLA</option>
+                        <option value="RAÍCES">RAÍCES</option>
+                        <option value="RENOVACIÓN">RENOVACIÓN</option>
+                        <option value="RENTABILIZACION">RENTABILIZACIÓN</option>
+                        <option value="ROBLES">ROBLES</option>
+                        <option value="TURNOS">TURNOS</option>
+                        <option value="VISIONARIOS">VISIONARIOS</option>
+                    </select>
+                </div>
+                
+                <div class="resumen-registro">
+                    <div class="resumen-header">
+                        <h3>Barridos Seleccionados</h3>
+                        <span class="badge" id="contadorRegistros">0</span>
+                    </div>
+                    <div class="lista-registros" id="listaRegistros">
+                        <!-- Los registros aparecerán aquí -->
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="confirmacion" name="confirmacion" required>
+                        <label for="confirmacion">Confirmo que asistiré a los barridos seleccionados</label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="registro-btn" id="registroBtn">
+                    <i class="fas fa-calendar-check"></i> REGISTRARME
+                </button>
+            </div>
+            
+            <footer>
+                <div class="footer-info">
+                    <span>© 2025 Parque de la Paz |</span>
+                    <div class="footer-contact">
+                        <span>RESPONSABLE Jonathan Solórzano</span>
+                        <i class="fas fa-phone"></i>
+                        <a href="https://wa.me/593960601592?text=Hola%20Jonathan,%20me%20interesa%20obtener%20más%20información%20sobre%20los%20barridos%20del%20Parque%20de%20la%20Paz" target="_blank" class="whatsapp-link">
+                            <i class="fab fa-whatsapp"></i> 0960601592
+                        </a>
+                    </div>
+                </div>
+            </footer>
+        </section>
+    </div>
+    
+    <!-- Modal para selección de horarios -->
+    <div class="modal" id="modalHorarios">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitulo">Seleccionar Horarios</h2>
+                <button class="close-modal" id="closeModal">&times;</button>
+            </div>
+            <div id="modalBody">
+                <!-- Contenido del modal se generará dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+   <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Elementos del DOM
+        const diasMes = document.getElementById('diasMes');
+        const mesAnio = document.getElementById('mesAnio');
+        const prevMesBtn = document.getElementById('prevMes');
+        const nextMesBtn = document.getElementById('nextMes');
+        const modalHorarios = document.getElementById('modalHorarios');
+        const closeModal = document.getElementById('closeModal');
+        const modalTitulo = document.getElementById('modalTitulo');
+        const modalBody = document.getElementById('modalBody');
+        const listaRegistros = document.getElementById('listaRegistros');
+        const contadorRegistros = document.getElementById('contadorRegistros');
+        const registroBtn = document.getElementById('registroBtn');
+        const estadoCupos = document.getElementById('estadoCupos');
+        const codigoAsesorInput = document.getElementById('codigoAsesor');
+        const nombreInput = document.getElementById('nombre');
+        const telefonoInput = document.getElementById('telefono');
+        const telefonoError = document.getElementById('telefonoError');
+        const equipoSelect = document.getElementById('equipo');
+        
+        // ⚙️ CONFIGURACIÓN - REEMPLAZA CON TU URL DEL SCRIPT
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxgOdgMP23PjYli_F8UKEBizUDQauJI96NcCFGQXr1FhnjkImBx-xu9r4bFakfVfo1Nvg/exec';
+        
+        // Fecha actual - Noviembre 2025
+        let fechaActual = new Date(2025, 10, 1);
+        
+        // Días con barridos disponibles en noviembre 2025
+        const diasConBarridos = [10, 12, 13, 14, 17, 18, 19, 20, 21, 24, 25, 26];
+        const diaPremiacion = 11;
+        
+        // Inicializar cupos si no existen
+        if (!localStorage.getItem('cuposBarridos2025')) {
+            const cuposIniciales = {};
+            diasConBarridos.forEach(dia => {
+                cuposIniciales[`2025-11-${dia.toString().padStart(2, '0')}`] = {
+                    manana: 10,
+                    tarde: 10
+                };
+            });
+            localStorage.setItem('cuposBarridos2025', JSON.stringify(cuposIniciales));
+        }
+        
+        // Inicializar registros de asesores si no existen
+        if (!localStorage.getItem('registrosAsesores2025')) {
+            localStorage.setItem('registrosAsesores2025', JSON.stringify({}));
+        }
+        
+        // Convertir texto a mayúsculas automáticamente
+        nombreInput.addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+        });
+        
+        // Validación de teléfono
+        function validarTelefono(telefono) {
+            const regex = /^0\d{9}$/;
+            return regex.test(telefono);
+        }
+        
+        // Eventos para validación de teléfono
+        telefonoInput.addEventListener('input', function() {
+            const valor = this.value;
+            this.value = valor.replace(/[^0-9]/g, '');
+            
+            if (valor.length === 0) {
+                this.value = '0';
+            } else if (valor.length === 1 && valor !== '0') {
+                this.value = '0' + valor;
+            }
+            
+            if (this.value.length > 10) {
+                this.value = this.value.slice(0, 10);
+            }
+            
+            if (validarTelefono(this.value)) {
+                this.classList.remove('input-error');
+                telefonoError.style.display = 'none';
+            } else {
+                this.classList.add('input-error');
+                telefonoError.style.display = 'block';
+            }
+        });
+        
+        telefonoInput.addEventListener('blur', function() {
+            if (!validarTelefono(this.value)) {
+                this.classList.add('input-error');
+                telefonoError.style.display = 'block';
+            }
+        });
+        
+        // Verificar si es noviembre 2025
+        function esNoviembre2025(fecha) {
+            return fecha.getMonth() === 10 && fecha.getFullYear() === 2025;
+        }
+        
+        // Generar calendario
+        function generarCalendario() {
+            diasMes.innerHTML = '';
+            const opciones = { month: 'long', year: 'numeric' };
+            mesAnio.textContent = fechaActual.toLocaleDateString('es-ES', opciones);
+            
+            prevMesBtn.disabled = fechaActual.getMonth() === 10 && fechaActual.getFullYear() === 2025;
+            nextMesBtn.disabled = fechaActual.getMonth() === 10 && fechaActual.getFullYear() === 2025;
+            
+            if (!esNoviembre2025(fechaActual)) {
+                diasMes.innerHTML = `
+                    <div class="mes-no-disponible">
+                        <i class="fas fa-calendar-times"></i>
+                        <h3>No hay barridos programados</h3>
+                        <p>Actualmente solo está disponible la programación para Noviembre 2025.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const primerDia = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), 1);
+            const ultimoDia = new Date(fechaActual.getFullYear(), fechaActual.getMonth() + 1, 0);
+            const diaInicio = primerDia.getDay();
+            
+            for (let i = 0; i < diaInicio; i++) {
+                const diaElement = document.createElement('div');
+                diaElement.className = 'dia otro-mes';
+                diasMes.appendChild(diaElement);
+            }
+            
+            for (let i = 1; i <= ultimoDia.getDate(); i++) {
+                const diaElement = document.createElement('div');
+                diaElement.className = 'dia';
+                
+                const hoy = new Date();
+                if (fechaActual.getMonth() === 10 && fechaActual.getFullYear() === 2025 && 
+                    i === hoy.getDate() && hoy.getMonth() === 10 && hoy.getFullYear() === 2025) {
+                    diaElement.classList.add('actual');
+                }
+                
+                if (i === diaPremiacion) {
+                    diaElement.classList.add('premiacion');
+                } else if (diasConBarridos.includes(i)) {
+                    diaElement.classList.add('disponible');
+                    const fechaStr = `2025-11-${i.toString().padStart(2, '0')}`;
+                    const cuposDia = obtenerCuposDia(fechaStr);
+                    
+                    if (cuposDia.manana <= 0 && cuposDia.tarde <= 0) {
+                        diaElement.classList.add('agotado');
+                    }
+                } else {
+                    diaElement.classList.add('sin-barridos');
+                }
+                
+                const numeroDia = document.createElement('div');
+                numeroDia.className = 'numero-dia';
+                numeroDia.textContent = i;
+                diaElement.appendChild(numeroDia);
+                
+                if (i === diaPremiacion) {
+                    const premiacionTexto = document.createElement('div');
+                    premiacionTexto.className = 'premiacion-texto';
+                    premiacionTexto.textContent = 'PREMIACIÓN PDLP';
+                    diaElement.appendChild(premiacionTexto);
+                    diaElement.style.cursor = 'default';
+                } else if (diasConBarridos.includes(i)) {
+                    const fechaStr = `2025-11-${i.toString().padStart(2, '0')}`;
+                    const cuposDia = obtenerCuposDia(fechaStr);
+                    
+                    const contadorCupos = document.createElement('div');
+                    let claseCupos = 'cupos-disponibles';
+                    let textoCupos = '';
+                    
+                    if (cuposDia.manana <= 0 && cuposDia.tarde <= 0) {
+                        claseCupos = 'cupos-agotados';
+                        textoCupos = 'CUPOS AGOTADOS';
+                    } else {
+                        const totalCupos = cuposDia.manana + cuposDia.tarde;
+                        if (totalCupos <= 3) {
+                            claseCupos = 'cupos-pocos';
+                        }
+                        textoCupos = `${cuposDia.manana}M ${cuposDia.tarde}T`;
+                    }
+                    
+                    contadorCupos.className = `contador-cupos ${claseCupos}`;
+                    contadorCupos.textContent = textoCupos;
+                    diaElement.appendChild(contadorCupos);
+                    
+                    if (cuposDia.manana > 0 || cuposDia.tarde > 0) {
+                        diaElement.style.cursor = 'pointer';
+                        diaElement.addEventListener('click', function() {
+                            abrirModalHorarios(i);
+                        });
+                    } else {
+                        diaElement.style.cursor = 'not-allowed';
+                    }
+                }
+                
+                diasMes.appendChild(diaElement);
+            }
+        }
+        
+        // Obtener cupos para un día específico
+        function obtenerCuposDia(fechaStr) {
+            const cuposBarridos = JSON.parse(localStorage.getItem('cuposBarridos2025') || '{}');
+            return cuposBarridos[fechaStr] || { manana: 10, tarde: 10 };
+        }
+        
+        // Verificar si el asesor ya está registrado
+        function asesorYaRegistrado(codigoAsesor, fechaStr, tipoHorario) {
+            const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
+            if (!registrosAsesores[codigoAsesor]) return false;
+            return registrosAsesores[codigoAsesor].some(registro => 
+                registro.fecha === fechaStr && registro.tipoHorario === tipoHorario
+            );
+        }
+        
+        // Obtener horarios ya registrados por el asesor
+        function obtenerHorariosRegistradosAsesor(codigoAsesor, fechaStr) {
+            const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
+            const horariosRegistrados = [];
+            if (registrosAsesores[codigoAsesor]) {
+                registrosAsesores[codigoAsesor].forEach(registro => {
+                    if (registro.fecha === fechaStr) {
+                        horariosRegistrados.push(registro.tipoHorario);
+                    }
+                });
+            }
+            return horariosRegistrados;
+        }
+        
+        // Actualizar cupos para un día específico
+        function actualizarCuposDia(fechaStr, horario, cantidad) {
+            const cuposBarridos = JSON.parse(localStorage.getItem('cuposBarridos2025') || '{}');
+            if (!cuposBarridos[fechaStr]) {
+                cuposBarridos[fechaStr] = { manana: 10, tarde: 10 };
+            }
+            cuposBarridos[fechaStr][horario] = Math.max(0, cuposBarridos[fechaStr][horario] - cantidad);
+            localStorage.setItem('cuposBarridos2025', JSON.stringify(cuposBarridos));
+            generarCalendario();
+        }
+        
+        // Abrir modal para seleccionar horarios
+        function abrirModalHorarios(dia) {
+            const codigoAsesor = codigoAsesorInput.value.trim();
+            
+            if (!codigoAsesor) {
+                alert('Por favor ingresa tu código de asesor antes de seleccionar horarios');
+                codigoAsesorInput.focus();
+                return;
+            }
+            
+            const fecha = new Date(2025, 10, dia);
+            const opciones = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+            const fechaFormateada = fecha.toLocaleDateString('es-ES', opciones);
+            const fechaStr = fecha.toISOString().split('T')[0];
+            
+            const cuposDia = obtenerCuposDia(fechaStr);
+            const horariosYaRegistrados = obtenerHorariosRegistradosAsesor(codigoAsesor, fechaStr);
+            
+            modalTitulo.textContent = `Barridos - ${fechaFormateada}`;
+            
+            modalBody.innerHTML = `
+                <div style="margin-bottom: 15px;">
+                    <p><strong>Cupos disponibles:</strong></p>
+                    <p>Mañana: ${cuposDia.manana}/10 | Tarde: ${cuposDia.tarde}/10</p>
+                </div>
+                <p>Selecciona los horarios para el ${fechaFormateada}:</p>
+                <div class="horarios-disponibles" style="margin-top: 15px;">
+                    <div class="horario-option ${cuposDia.manana <= 0 ? 'agotado' : ''} ${horariosYaRegistrados.includes('manana') ? 'ya-registrado' : ''}" 
+                         data-horario="manana" data-cupos="${cuposDia.manana}">
+                        <strong>MAÑANA</strong><br>
+                        09:00 - 12:00<br>
+                        (Centro / Sur)<br>
+                        <small>Cupos: ${cuposDia.manana}/10</small>
+                        ${horariosYaRegistrados.includes('manana') ? '<br><small style="color: #0c5460;"><i class="fas fa-info-circle"></i> Ya estás registrado</small>' : ''}
+                    </div>
+                    <div class="horario-option ${cuposDia.tarde <= 0 ? 'agotado' : ''} ${horariosYaRegistrados.includes('tarde') ? 'ya-registrado' : ''}" 
+                         data-horario="tarde" data-cupos="${cuposDia.tarde}">
+                        <strong>TARDE</strong><br>
+                        14:30 - 17:30<br>
+                        (Norte)<br>
+                        <small>Cupos: ${cuposDia.tarde}/10</small>
+                        ${horariosYaRegistrados.includes('tarde') ? '<br><small style="color: #0c5460;"><i class="fas fa-info-circle"></i> Ya estás registrado</small>' : ''}
+                    </div>
+                </div>
+                <div style="margin-top: 20px; display: flex; gap: 10px;">
+                    <button id="cancelarHorarios" style="flex: 1; padding: 10px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 5px; cursor: pointer;">Cancelar</button>
+                    <button id="guardarHorarios" style="flex: 1; padding: 10px; background: var(--teal-principal); color: white; border: none; border-radius: 5px; cursor: pointer;">Guardar Selección</button>
+                </div>
+            `;
+            
+            const horariosOptions = modalBody.querySelectorAll('.horario-option:not(.agotado):not(.ya-registrado)');
+            horariosOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    this.classList.toggle('seleccionado');
+                });
+            });
+            
+            modalBody.querySelector('#cancelarHorarios').addEventListener('click', function() {
+                modalHorarios.style.display = 'none';
+            });
+            
+            modalBody.querySelector('#guardarHorarios').addEventListener('click', function() {
+                const horariosSeleccionados = modalBody.querySelectorAll('.horario-option.seleccionado');
+                if (horariosSeleccionados.length === 0) {
+                    alert('Por favor selecciona al menos un horario');
+                    return;
+                }
+                
+                for (const horario of horariosSeleccionados) {
+                    const tipoHorario = horario.getAttribute('data-horario');
+                    const cuposDisponibles = parseInt(horario.getAttribute('data-cupos'));
+                    
+                    if (cuposDisponibles <= 0) {
+                        alert(`No hay cupos disponibles para el horario de ${tipoHorario}`);
+                        return;
+                    }
+                    
+                    if (asesorYaRegistrado(codigoAsesor, fechaStr, tipoHorario)) {
+                        alert(`Ya estás registrado en el horario de ${tipoHorario} para este día`);
+                        return;
+                    }
+                }
+                
+                horariosSeleccionados.forEach(horario => {
+                    const tipoHorario = horario.getAttribute('data-horario');
+                    const horarioTexto = tipoHorario === 'manana' ? '09:00 - 12:00 (Centro / Sur)' : '14:30 - 17:30 (Norte)';
+                    
+                    actualizarCuposDia(fechaStr, tipoHorario, 1);
+                    
+                    const registros = JSON.parse(localStorage.getItem('registrosBarridos2025') || '[]');
+                    registros.push({
+                        fecha: fechaStr,
+                        fechaTexto: fechaFormateada,
+                        horario: horarioTexto,
+                        tipoHorario: tipoHorario,
+                        codigoAsesor: codigoAsesor
+                    });
+                    localStorage.setItem('registrosBarridos2025', JSON.stringify(registros));
+                    
+                    const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
+                    if (!registrosAsesores[codigoAsesor]) {
+                        registrosAsesores[codigoAsesor] = [];
+                    }
+                    registrosAsesores[codigoAsesor].push({
+                        fecha: fechaStr,
+                        fechaTexto: fechaFormateada,
+                        horario: horarioTexto,
+                        tipoHorario: tipoHorario
+                    });
+                    localStorage.setItem('registrosAsesores2025', JSON.stringify(registrosAsesores));
+                });
+                
+                actualizarResumen();
+                modalHorarios.style.display = 'none';
+                alert('¡Registro exitoso! Has reservado tu cupo.');
+            });
+            
+            modalHorarios.style.display = 'flex';
+        }
+        
+        // Actualizar resumen de registros
+        function actualizarResumen() {
+            const codigoAsesor = codigoAsesorInput.value.trim();
+            let registros = [];
+            
+            if (codigoAsesor) {
+                const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
+                registros = registrosAsesores[codigoAsesor] || [];
+            }
+            
+            listaRegistros.innerHTML = '';
+            
+            if (registros.length === 0) {
+                listaRegistros.innerHTML = '<p style="text-align: center; color: #777; padding: 20px;">No hay barridos seleccionados</p>';
+            } else {
+                registros.forEach((registro, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'registro-item';
+                    item.innerHTML = `
+                        <div>
+                            <strong>${registro.fechaTexto}</strong><br>
+                            <small>${registro.horario}</small>
+                        </div>
+                        <span class="eliminar-item" data-index="${index}" data-fecha="${registro.fecha}" data-tipo="${registro.tipoHorario}">✕</span>
+                    `;
+                    listaRegistros.appendChild(item);
+                });
+                
+                document.querySelectorAll('.eliminar-item').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const index = parseInt(this.getAttribute('data-index'));
+                        const fecha = this.getAttribute('data-fecha');
+                        const tipoHorario = this.getAttribute('data-tipo');
+                        const codigoAsesor = codigoAsesorInput.value.trim();
+                        
+                        if (!codigoAsesor) {
+                            alert('Por favor ingresa tu código de asesor');
+                            return;
+                        }
+                        
+                        const cuposBarridos = JSON.parse(localStorage.getItem('cuposBarridos2025') || '{}');
+                        if (cuposBarridos[fecha]) {
+                            cuposBarridos[fecha][tipoHorario] = Math.min(10, cuposBarridos[fecha][tipoHorario] + 1);
+                            localStorage.setItem('cuposBarridos2025', JSON.stringify(cuposBarridos));
+                        }
+                        
+                        const registrosGenerales = JSON.parse(localStorage.getItem('registrosBarridos2025') || '[]');
+                        const nuevoRegistrosGenerales = registrosGenerales.filter(reg => 
+                            !(reg.fecha === fecha && reg.tipoHorario === tipoHorario && reg.codigoAsesor === codigoAsesor)
+                        );
+                        localStorage.setItem('registrosBarridos2025', JSON.stringify(nuevoRegistrosGenerales));
+                        
+                        const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
+                        if (registrosAsesores[codigoAsesor]) {
+                            registrosAsesores[codigoAsesor].splice(index, 1);
+                            localStorage.setItem('registrosAsesores2025', JSON.stringify(registrosAsesores));
+                        }
+                        
+                        actualizarResumen();
+                        generarCalendario();
+                    });
+                });
+            }
+            
+            contadorRegistros.textContent = registros.length;
+        }
+        
+        // Evento para actualizar resumen cuando cambia el código de asesor
+        codigoAsesorInput.addEventListener('input', function() {
+            actualizarResumen();
+        });
+        
+        // Eventos para los botones de navegación del calendario
+        prevMesBtn.addEventListener('click', function() {
+            fechaActual.setMonth(fechaActual.getMonth() - 1);
+            generarCalendario();
+        });
+        
+        nextMesBtn.addEventListener('click', function() {
+            fechaActual.setMonth(fechaActual.getMonth() + 1);
+            generarCalendario();
+        });
+        
+        // Cerrar modal
+        closeModal.addEventListener('click', function() {
+            modalHorarios.style.display = 'none';
+        });
+        
+        // 🚀 FUNCIÓN MEJORADA PARA ENVIAR A GOOGLE SHEETS
+// 🚀 FUNCIÓN MEJORADA PARA ENVIAR A GOOGLE SHEETS
+registroBtn.addEventListener('click', async function() {
+    const nombre = document.getElementById('nombre').value;
+    const telefono = document.getElementById('telefono').value;
+    const email = document.getElementById('email').value;
+    const codigoAsesor = codigoAsesorInput.value.trim();
+    const equipo = equipoSelect.value;
+    const confirmacion = document.getElementById('confirmacion').checked;
+    
+    if (!nombre || !telefono || !email || !codigoAsesor || !equipo) {
+        alert('Por favor completa todos los campos obligatorios');
+        return;
+    }
+    
+    if (!validarTelefono(telefono)) {
+        alert('Por favor ingresa un número de teléfono válido (10 dígitos que comienzan con 0)');
+        telefonoInput.focus();
+        return;
+    }
+    
+    if (!confirmacion) {
+        alert('Debes confirmar que asistirás a los barridos seleccionados');
+        return;
+    }
+    
+    const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
+    const registros = registrosAsesores[codigoAsesor] || [];
+    
+    if (registros.length === 0) {
+        alert('Por favor selecciona al menos un barrido en el calendario');
+        return;
+    }
+    
+    // Mostrar mensaje de carga
+    registroBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ENVIANDO...';
+    registroBtn.disabled = true;
+    
+    try {
+        // Preparar datos para enviar
+        const formData = {
+            codigoAsesor: codigoAsesor,
+            nombre: nombre,
+            telefono: telefono,
+            email: email,
+            equipo: equipo,
+            registros: registros,
+            fechaRegistro: new Date().toLocaleString('es-ES')
+        };
+        
+        // SOLUCIÓN CORS - Usar XMLHttpRequest en lugar de fetch
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', GOOGLE_SCRIPT_URL);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        
+        xhr.onload = function() {
+            // Restaurar botón
+            registroBtn.innerHTML = '<i class="fas fa-calendar-check"></i> REGISTRARME';
+            registroBtn.disabled = false;
+            
+            if (xhr.status === 200) {
+                try {
+                    const result = JSON.parse(xhr.responseText);
+                    
+                    alert(`✅ ¡Registro exitoso!\n\nTe has registrado para ${registros.length} barrido(s).\n\nLos datos han sido guardados en el sistema.`);
+                    
+                    // Limpiar formulario
+                    document.getElementById('nombre').value = '';
+                    document.getElementById('telefono').value = '';
+                    document.getElementById('email').value = '';
+                    codigoAsesorInput.value = '';
+                    equipoSelect.value = '';
+                    document.getElementById('confirmacion').checked = false;
+                    
+                    // Limpiar registros locales
+                    const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
+                    delete registrosAsesores[codigoAsesor];
+                    localStorage.setItem('registrosAsesores2025', JSON.stringify(registrosAsesores));
+                    
+                    actualizarResumen();
+                    generarCalendario();
+                    
+                } catch (parseError) {
+                    console.error('Error parsing response:', parseError);
+                    alert('✅ Registro enviado, pero hubo un error en la respuesta.');
+                }
+            } else {
+                throw new Error('Error en la respuesta del servidor: ' + xhr.status);
+            }
+        };
+        
+        xhr.onerror = function() {
+            registroBtn.innerHTML = '<i class="fas fa-calendar-check"></i> REGISTRARME';
+            registroBtn.disabled = false;
+            alert('⚠️ Error de conexión. Por favor intenta nuevamente.');
+        };
+        
+        // Enviar la petición
+        xhr.send(JSON.stringify(formData));
+        
+    } catch (error) {
+        // Restaurar botón en caso de error
+        registroBtn.innerHTML = '<i class="fas fa-calendar-check"></i> REGISTRARME';
+        registroBtn.disabled = false;
+        
+        alert('⚠️ Error al enviar el registro. Por favor intenta nuevamente.\n\nSi el problema persiste, contacta al administrador.');
+        console.error('Error:', error);
+    }
+		});
+       // Inicializar
+        generarCalendario();
+        actualizarResumen();
+    });
+</script>
+</body>
+</html>
