@@ -1,0 +1,547 @@
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Elementos del DOM
+        const diasMes = document.getElementById('diasMes');
+        const mesAnio = document.getElementById('mesAnio');
+        const prevMesBtn = document.getElementById('prevMes');
+        const nextMesBtn = document.getElementById('nextMes');
+        const modalHorarios = document.getElementById('modalHorarios');
+        const closeModal = document.getElementById('closeModal');
+        const modalTitulo = document.getElementById('modalTitulo');
+        const modalBody = document.getElementById('modalBody');
+        const listaRegistros = document.getElementById('listaRegistros');
+        const contadorRegistros = document.getElementById('contadorRegistros');
+        const registroBtn = document.getElementById('registroBtn');
+        const estadoCupos = document.getElementById('estadoCupos');
+        const codigoAsesorInput = document.getElementById('codigoAsesor');
+        const nombreInput = document.getElementById('nombre');
+        const telefonoInput = document.getElementById('telefono');
+        const telefonoError = document.getElementById('telefonoError');
+        const equipoSelect = document.getElementById('equipo');
+        
+        // ⚙️ CONFIGURACIÓN - REEMPLAZA CON TU URL DEL SCRIPT
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxaauX-1mni1TLZwjvQtUDz9aQyzAKNmCnjT99Cn5Tcw6wP75vNahJX5ozC-1DX2tZQYA/exec';
+        
+        // Fecha actual - Noviembre 2025
+        let fechaActual = new Date(2025, 10, 1);
+        
+        // Días con barridos disponibles en noviembre 2025
+        const diasConBarridos = [10, 12, 13, 14, 17, 18, 19, 20, 21, 24, 25, 26];
+        const diaPremiacion = 11;
+        
+        // Inicializar cupos si no existen
+        if (!localStorage.getItem('cuposBarridos2025')) {
+            const cuposIniciales = {};
+            diasConBarridos.forEach(dia => {
+                cuposIniciales[`2025-11-${dia.toString().padStart(2, '0')}`] = {
+                    manana: 10,
+                    tarde: 10
+                };
+            });
+            localStorage.setItem('cuposBarridos2025', JSON.stringify(cuposIniciales));
+        }
+        
+        // Inicializar registros de asesores si no existen
+        if (!localStorage.getItem('registrosAsesores2025')) {
+            localStorage.setItem('registrosAsesores2025', JSON.stringify({}));
+        }
+        
+        // Convertir texto a mayúsculas automáticamente
+        nombreInput.addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+        });
+        
+        // Validación de teléfono
+        function validarTelefono(telefono) {
+            const regex = /^0\d{9}$/;
+            return regex.test(telefono);
+        }
+        
+        // Eventos para validación de teléfono
+        telefonoInput.addEventListener('input', function() {
+            const valor = this.value;
+            this.value = valor.replace(/[^0-9]/g, '');
+            
+            if (valor.length === 0) {
+                this.value = '0';
+            } else if (valor.length === 1 && valor !== '0') {
+                this.value = '0' + valor;
+            }
+            
+            if (this.value.length > 10) {
+                this.value = this.value.slice(0, 10);
+            }
+            
+            if (validarTelefono(this.value)) {
+                this.classList.remove('input-error');
+                telefonoError.style.display = 'none';
+            } else {
+                this.classList.add('input-error');
+                telefonoError.style.display = 'block';
+            }
+        });
+        
+        telefonoInput.addEventListener('blur', function() {
+            if (!validarTelefono(this.value)) {
+                this.classList.add('input-error');
+                telefonoError.style.display = 'block';
+            }
+        });
+        
+        // Verificar si es noviembre 2025
+        function esNoviembre2025(fecha) {
+            return fecha.getMonth() === 10 && fecha.getFullYear() === 2025;
+        }
+        
+        // Generar calendario
+        function generarCalendario() {
+            diasMes.innerHTML = '';
+            const opciones = { month: 'long', year: 'numeric' };
+            mesAnio.textContent = fechaActual.toLocaleDateString('es-ES', opciones);
+            
+            prevMesBtn.disabled = fechaActual.getMonth() === 10 && fechaActual.getFullYear() === 2025;
+            nextMesBtn.disabled = fechaActual.getMonth() === 10 && fechaActual.getFullYear() === 2025;
+            
+            if (!esNoviembre2025(fechaActual)) {
+                diasMes.innerHTML = `
+                    <div class="mes-no-disponible">
+                        <i class="fas fa-calendar-times"></i>
+                        <h3>No hay barridos programados</h3>
+                        <p>Actualmente solo está disponible la programación para Noviembre 2025.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const primerDia = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), 1);
+            const ultimoDia = new Date(fechaActual.getFullYear(), fechaActual.getMonth() + 1, 0);
+            const diaInicio = primerDia.getDay();
+            
+            for (let i = 0; i < diaInicio; i++) {
+                const diaElement = document.createElement('div');
+                diaElement.className = 'dia otro-mes';
+                diasMes.appendChild(diaElement);
+            }
+            
+            for (let i = 1; i <= ultimoDia.getDate(); i++) {
+                const diaElement = document.createElement('div');
+                diaElement.className = 'dia';
+                
+                const hoy = new Date();
+                if (fechaActual.getMonth() === 10 && fechaActual.getFullYear() === 2025 && 
+                    i === hoy.getDate() && hoy.getMonth() === 10 && hoy.getFullYear() === 2025) {
+                    diaElement.classList.add('actual');
+                }
+                
+                if (i === diaPremiacion) {
+                    diaElement.classList.add('premiacion');
+                } else if (diasConBarridos.includes(i)) {
+                    diaElement.classList.add('disponible');
+                    const fechaStr = `2025-11-${i.toString().padStart(2, '0')}`;
+                    const cuposDia = obtenerCuposDia(fechaStr);
+                    
+                    if (cuposDia.manana <= 0 && cuposDia.tarde <= 0) {
+                        diaElement.classList.add('agotado');
+                    }
+                } else {
+                    diaElement.classList.add('sin-barridos');
+                }
+                
+                const numeroDia = document.createElement('div');
+                numeroDia.className = 'numero-dia';
+                numeroDia.textContent = i;
+                diaElement.appendChild(numeroDia);
+                
+                if (i === diaPremiacion) {
+                    const premiacionTexto = document.createElement('div');
+                    premiacionTexto.className = 'premiacion-texto';
+                    premiacionTexto.textContent = 'PREMIACIÓN PDLP';
+                    diaElement.appendChild(premiacionTexto);
+                    diaElement.style.cursor = 'default';
+                } else if (diasConBarridos.includes(i)) {
+                    const fechaStr = `2025-11-${i.toString().padStart(2, '0')}`;
+                    const cuposDia = obtenerCuposDia(fechaStr);
+                    
+                    const contadorCupos = document.createElement('div');
+                    let claseCupos = 'cupos-disponibles';
+                    let textoCupos = '';
+                    
+                    if (cuposDia.manana <= 0 && cuposDia.tarde <= 0) {
+                        claseCupos = 'cupos-agotados';
+                        textoCupos = 'CUPOS AGOTADOS';
+                    } else {
+                        const totalCupos = cuposDia.manana + cuposDia.tarde;
+                        if (totalCupos <= 3) {
+                            claseCupos = 'cupos-pocos';
+                        }
+                        textoCupos = `${cuposDia.manana}M ${cuposDia.tarde}T`;
+                    }
+                    
+                    contadorCupos.className = `contador-cupos ${claseCupos}`;
+                    contadorCupos.textContent = textoCupos;
+                    diaElement.appendChild(contadorCupos);
+                    
+                    if (cuposDia.manana > 0 || cuposDia.tarde > 0) {
+                        diaElement.style.cursor = 'pointer';
+                        diaElement.addEventListener('click', function() {
+                            abrirModalHorarios(i);
+                        });
+                    } else {
+                        diaElement.style.cursor = 'not-allowed';
+                    }
+                }
+                
+                diasMes.appendChild(diaElement);
+            }
+        }
+        
+        // Obtener cupos para un día específico
+        function obtenerCuposDia(fechaStr) {
+            const cuposBarridos = JSON.parse(localStorage.getItem('cuposBarridos2025') || '{}');
+            return cuposBarridos[fechaStr] || { manana: 10, tarde: 10 };
+        }
+        
+        // Verificar si el asesor ya está registrado
+        function asesorYaRegistrado(codigoAsesor, fechaStr, tipoHorario) {
+            const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
+            if (!registrosAsesores[codigoAsesor]) return false;
+            return registrosAsesores[codigoAsesor].some(registro => 
+                registro.fecha === fechaStr && registro.tipoHorario === tipoHorario
+            );
+        }
+        
+        // Obtener horarios ya registrados por el asesor
+        function obtenerHorariosRegistradosAsesor(codigoAsesor, fechaStr) {
+            const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
+            const horariosRegistrados = [];
+            if (registrosAsesores[codigoAsesor]) {
+                registrosAsesores[codigoAsesor].forEach(registro => {
+                    if (registro.fecha === fechaStr) {
+                        horariosRegistrados.push(registro.tipoHorario);
+                    }
+                });
+            }
+            return horariosRegistrados;
+        }
+        
+        // Actualizar cupos para un día específico
+        function actualizarCuposDia(fechaStr, horario, cantidad) {
+            const cuposBarridos = JSON.parse(localStorage.getItem('cuposBarridos2025') || '{}');
+            if (!cuposBarridos[fechaStr]) {
+                cuposBarridos[fechaStr] = { manana: 10, tarde: 10 };
+            }
+            cuposBarridos[fechaStr][horario] = Math.max(0, cuposBarridos[fechaStr][horario] - cantidad);
+            localStorage.setItem('cuposBarridos2025', JSON.stringify(cuposBarridos));
+            generarCalendario();
+        }
+        
+        // Abrir modal para seleccionar horarios
+        function abrirModalHorarios(dia) {
+            const codigoAsesor = codigoAsesorInput.value.trim();
+            
+            if (!codigoAsesor) {
+                alert('Por favor ingresa tu código de asesor antes de seleccionar horarios');
+                codigoAsesorInput.focus();
+                return;
+            }
+            
+            const fecha = new Date(2025, 10, dia);
+            const opciones = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+            const fechaFormateada = fecha.toLocaleDateString('es-ES', opciones);
+            const fechaStr = fecha.toISOString().split('T')[0];
+            
+            const cuposDia = obtenerCuposDia(fechaStr);
+            const horariosYaRegistrados = obtenerHorariosRegistradosAsesor(codigoAsesor, fechaStr);
+            
+            modalTitulo.textContent = `Barridos - ${fechaFormateada}`;
+            
+            modalBody.innerHTML = `
+                <div style="margin-bottom: 15px;">
+                    <p><strong>Cupos disponibles:</strong></p>
+                    <p>Mañana: ${cuposDia.manana}/10 | Tarde: ${cuposDia.tarde}/10</p>
+                </div>
+                <p>Selecciona los horarios para el ${fechaFormateada}:</p>
+                <div class="horarios-disponibles" style="margin-top: 15px;">
+                    <div class="horario-option ${cuposDia.manana <= 0 ? 'agotado' : ''} ${horariosYaRegistrados.includes('manana') ? 'ya-registrado' : ''}" 
+                         data-horario="manana" data-cupos="${cuposDia.manana}">
+                        <strong>MAÑANA</strong><br>
+                        09:00 - 12:00<br>
+                        (Centro / Sur)<br>
+                        <small>Cupos: ${cuposDia.manana}/10</small>
+                        ${horariosYaRegistrados.includes('manana') ? '<br><small style="color: #0c5460;"><i class="fas fa-info-circle"></i> Ya estás registrado</small>' : ''}
+                    </div>
+                    <div class="horario-option ${cuposDia.tarde <= 0 ? 'agotado' : ''} ${horariosYaRegistrados.includes('tarde') ? 'ya-registrado' : ''}" 
+                         data-horario="tarde" data-cupos="${cuposDia.tarde}">
+                        <strong>TARDE</strong><br>
+                        14:30 - 17:30<br>
+                        (Norte)<br>
+                        <small>Cupos: ${cuposDia.tarde}/10</small>
+                        ${horariosYaRegistrados.includes('tarde') ? '<br><small style="color: #0c5460;"><i class="fas fa-info-circle"></i> Ya estás registrado</small>' : ''}
+                    </div>
+                </div>
+                <div style="margin-top: 20px; display: flex; gap: 10px;">
+                    <button id="cancelarHorarios" style="flex: 1; padding: 10px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 5px; cursor: pointer;">Cancelar</button>
+                    <button id="guardarHorarios" style="flex: 1; padding: 10px; background: var(--teal-principal); color: white; border: none; border-radius: 5px; cursor: pointer;">Guardar Selección</button>
+                </div>
+            `;
+            
+            const horariosOptions = modalBody.querySelectorAll('.horario-option:not(.agotado):not(.ya-registrado)');
+            horariosOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    this.classList.toggle('seleccionado');
+                });
+            });
+            
+            modalBody.querySelector('#cancelarHorarios').addEventListener('click', function() {
+                modalHorarios.style.display = 'none';
+            });
+            
+            modalBody.querySelector('#guardarHorarios').addEventListener('click', function() {
+                const horariosSeleccionados = modalBody.querySelectorAll('.horario-option.seleccionado');
+                if (horariosSeleccionados.length === 0) {
+                    alert('Por favor selecciona al menos un horario');
+                    return;
+                }
+                
+                for (const horario of horariosSeleccionados) {
+                    const tipoHorario = horario.getAttribute('data-horario');
+                    const cuposDisponibles = parseInt(horario.getAttribute('data-cupos'));
+                    
+                    if (cuposDisponibles <= 0) {
+                        alert(`No hay cupos disponibles para el horario de ${tipoHorario}`);
+                        return;
+                    }
+                    
+                    if (asesorYaRegistrado(codigoAsesor, fechaStr, tipoHorario)) {
+                        alert(`Ya estás registrado en el horario de ${tipoHorario} para este día`);
+                        return;
+                    }
+                }
+                
+                horariosSeleccionados.forEach(horario => {
+                    const tipoHorario = horario.getAttribute('data-horario');
+                    const horarioTexto = tipoHorario === 'manana' ? '09:00 - 12:00 (Centro / Sur)' : '14:30 - 17:30 (Norte)';
+                    
+                    actualizarCuposDia(fechaStr, tipoHorario, 1);
+                    
+                    const registros = JSON.parse(localStorage.getItem('registrosBarridos2025') || '[]');
+                    registros.push({
+                        fecha: fechaStr,
+                        fechaTexto: fechaFormateada,
+                        horario: horarioTexto,
+                        tipoHorario: tipoHorario,
+                        codigoAsesor: codigoAsesor
+                    });
+                    localStorage.setItem('registrosBarridos2025', JSON.stringify(registros));
+                    
+                    const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
+                    if (!registrosAsesores[codigoAsesor]) {
+                        registrosAsesores[codigoAsesor] = [];
+                    }
+                    registrosAsesores[codigoAsesor].push({
+                        fecha: fechaStr,
+                        fechaTexto: fechaFormateada,
+                        horario: horarioTexto,
+                        tipoHorario: tipoHorario
+                    });
+                    localStorage.setItem('registrosAsesores2025', JSON.stringify(registrosAsesores));
+                });
+                
+                actualizarResumen();
+                modalHorarios.style.display = 'none';
+                alert('¡Registro exitoso! Has reservado tu cupo.');
+            });
+            
+            modalHorarios.style.display = 'flex';
+        }
+        
+        // Actualizar resumen de registros
+        function actualizarResumen() {
+            const codigoAsesor = codigoAsesorInput.value.trim();
+            let registros = [];
+            
+            if (codigoAsesor) {
+                const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
+                registros = registrosAsesores[codigoAsesor] || [];
+            }
+            
+            listaRegistros.innerHTML = '';
+            
+            if (registros.length === 0) {
+                listaRegistros.innerHTML = '<p style="text-align: center; color: #777; padding: 20px;">No hay barridos seleccionados</p>';
+            } else {
+                registros.forEach((registro, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'registro-item';
+                    item.innerHTML = `
+                        <div>
+                            <strong>${registro.fechaTexto}</strong><br>
+                            <small>${registro.horario}</small>
+                        </div>
+                        <span class="eliminar-item" data-index="${index}" data-fecha="${registro.fecha}" data-tipo="${registro.tipoHorario}">✕</span>
+                    `;
+                    listaRegistros.appendChild(item);
+                });
+                
+                document.querySelectorAll('.eliminar-item').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const index = parseInt(this.getAttribute('data-index'));
+                        const fecha = this.getAttribute('data-fecha');
+                        const tipoHorario = this.getAttribute('data-tipo');
+                        const codigoAsesor = codigoAsesorInput.value.trim();
+                        
+                        if (!codigoAsesor) {
+                            alert('Por favor ingresa tu código de asesor');
+                            return;
+                        }
+                        
+                        const cuposBarridos = JSON.parse(localStorage.getItem('cuposBarridos2025') || '{}');
+                        if (cuposBarridos[fecha]) {
+                            cuposBarridos[fecha][tipoHorario] = Math.min(10, cuposBarridos[fecha][tipoHorario] + 1);
+                            localStorage.setItem('cuposBarridos2025', JSON.stringify(cuposBarridos));
+                        }
+                        
+                        const registrosGenerales = JSON.parse(localStorage.getItem('registrosBarridos2025') || '[]');
+                        const nuevoRegistrosGenerales = registrosGenerales.filter(reg => 
+                            !(reg.fecha === fecha && reg.tipoHorario === tipoHorario && reg.codigoAsesor === codigoAsesor)
+                        );
+                        localStorage.setItem('registrosBarridos2025', JSON.stringify(nuevoRegistrosGenerales));
+                        
+                        const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
+                        if (registrosAsesores[codigoAsesor]) {
+                            registrosAsesores[codigoAsesor].splice(index, 1);
+                            localStorage.setItem('registrosAsesores2025', JSON.stringify(registrosAsesores));
+                        }
+                        
+                        actualizarResumen();
+                        generarCalendario();
+                    });
+                });
+            }
+            
+            contadorRegistros.textContent = registros.length;
+        }
+        
+        // Evento para actualizar resumen cuando cambia el código de asesor
+        codigoAsesorInput.addEventListener('input', function() {
+            actualizarResumen();
+        });
+        
+        // Eventos para los botones de navegación del calendario
+        prevMesBtn.addEventListener('click', function() {
+            fechaActual.setMonth(fechaActual.getMonth() - 1);
+            generarCalendario();
+        });
+        
+        nextMesBtn.addEventListener('click', function() {
+            fechaActual.setMonth(fechaActual.getMonth() + 1);
+            generarCalendario();
+        });
+        
+        // Cerrar modal
+        closeModal.addEventListener('click', function() {
+            modalHorarios.style.display = 'none';
+        });
+        
+        // 🚀 FUNCIÓN MEJORADA PARA ENVIAR A GOOGLE SHEETS
+        registroBtn.addEventListener('click', async function() {
+            const nombre = document.getElementById('nombre').value;
+            const telefono = document.getElementById('telefono').value;
+            const email = document.getElementById('email').value;
+            const codigoAsesor = codigoAsesorInput.value.trim();
+            const equipo = equipoSelect.value;
+            const confirmacion = document.getElementById('confirmacion').checked;
+            
+            if (!nombre || !telefono || !email || !codigoAsesor || !equipo) {
+                alert('Por favor completa todos los campos obligatorios');
+                return;
+            }
+            
+            if (!validarTelefono(telefono)) {
+                alert('Por favor ingresa un número de teléfono válido (10 dígitos que comienzan con 0)');
+                telefonoInput.focus();
+                return;
+            }
+            
+            if (!confirmacion) {
+                alert('Debes confirmar que asistirás a los barridos seleccionados');
+                return;
+            }
+            
+            const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
+            const registros = registrosAsesores[codigoAsesor] || [];
+            
+            if (registros.length === 0) {
+                alert('Por favor selecciona al menos un barrido en el calendario');
+                return;
+            }
+            
+            // Mostrar mensaje de carga
+            registroBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ENVIANDO...';
+            registroBtn.disabled = true;
+            
+            try {
+                // Preparar datos para enviar
+                const formData = {
+                    codigoAsesor: codigoAsesor,
+                    nombre: nombre,
+                    telefono: telefono,
+                    email: email,
+                    equipo: equipo,
+                    registros: registros,
+                    fechaRegistro: new Date().toLocaleString('es-ES')
+                };
+                
+                // Enviar a Google Apps Script
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                // Restaurar botón
+                registroBtn.innerHTML = '<i class="fas fa-calendar-check"></i> REGISTRARME';
+                registroBtn.disabled = false;
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    
+                    alert(`✅ ¡Registro exitoso!\n\nTe has registrado para ${registros.length} barrido(s).\n\nLos datos han sido guardados en el sistema.`);
+                    
+                    // Limpiar formulario
+                    document.getElementById('nombre').value = '';
+                    document.getElementById('telefono').value = '';
+                    document.getElementById('email').value = '';
+                    codigoAsesorInput.value = '';
+                    equipoSelect.value = '';
+                    document.getElementById('confirmacion').checked = false;
+                    
+                    // Limpiar registros locales
+                    const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
+                    delete registrosAsesores[codigoAsesor];
+                    localStorage.setItem('registrosAsesores2025', JSON.stringify(registrosAsesores));
+                    
+                    actualizarResumen();
+                    generarCalendario();
+                    
+                } else {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+                
+            } catch (error) {
+                // Restaurar botón en caso de error
+                registroBtn.innerHTML = '<i class="fas fa-calendar-check"></i> REGISTRARME';
+                registroBtn.disabled = false;
+                
+                alert('⚠️ Error al enviar el registro. Por favor intenta nuevamente.\n\nSi el problema persiste, contacta al administrador.');
+                console.error('Error:', error);
+            }
+        });
+        
+        // Inicializar
+        generarCalendario();
+        actualizarResumen();
+    });
+</script>
