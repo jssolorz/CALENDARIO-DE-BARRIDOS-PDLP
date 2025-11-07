@@ -872,4 +872,359 @@
 
     <script>
         // El código JavaScript permanece igual que en la versión anterior
-        document.addEventListener('DOMContentLoaded',
+        document.addEventListener('DOMContentLoaded', function() {
+            // Variables globales
+            let fechaActual = new Date();
+            let fechaSeleccionada = null;
+            let registros = [];
+            
+            // Elementos del DOM
+            const mesAnioElement = document.getElementById('mesAnio');
+            const diasMesElement = document.getElementById('diasMes');
+            const prevMesBtn = document.getElementById('prevMes');
+            const nextMesBtn = document.getElementById('nextMes');
+            const modalHorarios = document.getElementById('modalHorarios');
+            const closeModalBtn = document.getElementById('closeModal');
+            const modalTitulo = document.getElementById('modalTitulo');
+            const modalBody = document.getElementById('modalBody');
+            const listaRegistros = document.getElementById('listaRegistros');
+            const contadorRegistros = document.getElementById('contadorRegistros');
+            const estadoCupos = document.getElementById('estadoCupos');
+            const registroBtn = document.getElementById('registroBtn');
+            const telefonoInput = document.getElementById('telefono');
+            const telefonoError = document.getElementById('telefonoError');
+            
+            // Inicializar el calendario
+            renderizarCalendario(fechaActual);
+            
+            // Event Listeners
+            prevMesBtn.addEventListener('click', () => {
+                fechaActual.setMonth(fechaActual.getMonth() - 1);
+                renderizarCalendario(fechaActual);
+            });
+            
+            nextMesBtn.addEventListener('click', () => {
+                fechaActual.setMonth(fechaActual.getMonth() + 1);
+                renderizarCalendario(fechaActual);
+            });
+            
+            closeModalBtn.addEventListener('click', () => {
+                modalHorarios.style.display = 'none';
+            });
+            
+            window.addEventListener('click', (e) => {
+                if (e.target === modalHorarios) {
+                    modalHorarios.style.display = 'none';
+                }
+            });
+            
+            telefonoInput.addEventListener('input', validarTelefono);
+            
+            registroBtn.addEventListener('click', registrarBarridos);
+            
+            // Funciones
+            function renderizarCalendario(fecha) {
+                const año = fecha.getFullYear();
+                const mes = fecha.getMonth();
+                
+                // Actualizar el título del mes y año
+                const opciones = { month: 'long', year: 'numeric' };
+                mesAnioElement.textContent = fecha.toLocaleDateString('es-ES', opciones).toUpperCase();
+                
+                // Limpiar el calendario
+                diasMesElement.innerHTML = '';
+                
+                // Obtener el primer día del mes y el último día del mes
+                const primerDia = new Date(año, mes, 1);
+                const ultimoDia = new Date(año, mes + 1, 0);
+                
+                // Obtener el día de la semana del primer día (0 = Domingo, 1 = Lunes, etc.)
+                const primerDiaSemana = primerDia.getDay();
+                
+                // Obtener el último día del mes anterior
+                const ultimoDiaMesAnterior = new Date(año, mes, 0).getDate();
+                
+                // Agregar días del mes anterior
+                for (let i = primerDiaSemana - 1; i >= 0; i--) {
+                    const dia = ultimoDiaMesAnterior - i;
+                    const diaElement = document.createElement('div');
+                    diaElement.classList.add('dia', 'otro-mes');
+                    diaElement.innerHTML = `
+                        <div class="numero-dia">${dia}</div>
+                    `;
+                    diasMesElement.appendChild(diaElement);
+                }
+                
+                // Agregar días del mes actual
+                for (let dia = 1; dia <= ultimoDia.getDate(); dia++) {
+                    const diaFecha = new Date(año, mes, dia);
+                    const diaElement = document.createElement('div');
+                    diaElement.classList.add('dia');
+                    
+                    // Marcar el día actual
+                    const hoy = new Date();
+                    if (diaFecha.toDateString() === hoy.toDateString()) {
+                        diaElement.classList.add('actual');
+                    }
+                    
+                    // Simular disponibilidad de cupos (en una aplicación real, esto vendría de una base de datos)
+                    const cuposManana = Math.floor(Math.random() * 11); // 0-10
+                    const cuposTarde = Math.floor(Math.random() * 11); // 0-10
+                    
+                    // Determinar clases de disponibilidad
+                    if (cuposManana > 0 || cuposTarde > 0) {
+                        diaElement.classList.add('disponible');
+                    } else {
+                        diaElement.classList.add('agotado');
+                    }
+                    
+                    // Contador de cupos
+                    let contadorClase = 'cupos-agotados';
+                    let contadorTexto = 'AGOTADO';
+                    
+                    if (cuposManana > 0 || cuposTarde > 0) {
+                        const totalCupos = cuposManana + cuposTarde;
+                        if (totalCupos <= 3) {
+                            contadorClase = 'cupos-pocos';
+                            contadorTexto = `${totalCupos} CUPOS`;
+                        } else {
+                            contadorClase = 'cupos-disponibles';
+                            contadorTexto = `${totalCupos} CUPOS`;
+                        }
+                    }
+                    
+                    diaElement.innerHTML = `
+                        <div class="numero-dia">${dia}</div>
+                        <div class="contador-cupos ${contadorClase}">${contadorTexto}</div>
+                    `;
+                    
+                    // Solo agregar evento click si hay cupos disponibles
+                    if (cuposManana > 0 || cuposTarde > 0) {
+                        diaElement.addEventListener('click', () => {
+                            fechaSeleccionada = diaFecha;
+                            abrirModalHorarios(diaFecha, cuposManana, cuposTarde);
+                        });
+                    }
+                    
+                    diasMesElement.appendChild(diaElement);
+                }
+                
+                // Calcular cuántos días del próximo mes necesitamos agregar
+                const totalCeldas = 42; // 6 filas de 7 días
+                const celdasUsadas = primerDiaSemana + ultimoDia.getDate();
+                const diasProximoMes = totalCeldas - celdasUsadas;
+                
+                // Agregar días del próximo mes
+                for (let dia = 1; dia <= diasProximoMes; dia++) {
+                    const diaElement = document.createElement('div');
+                    diaElement.classList.add('dia', 'otro-mes');
+                    diaElement.innerHTML = `
+                        <div class="numero-dia">${dia}</div>
+                    `;
+                    diasMesElement.appendChild(diaElement);
+                }
+            }
+            
+            function abrirModalHorarios(fecha, cuposManana, cuposTarde) {
+                const opcionesFecha = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                const fechaFormateada = fecha.toLocaleDateString('es-ES', opcionesFecha);
+                
+                modalTitulo.textContent = `Horarios para ${fechaFormateada}`;
+                
+                let contenidoModal = `
+                    <div class="info-cupos">
+                        <p>Cupos disponibles: <strong>Mañana: ${cuposManana}/10</strong> | <strong>Tarde: ${cuposTarde}/10</strong></p>
+                    </div>
+                    <div class="horarios-disponibles">
+                `;
+                
+                // Verificar si ya está registrado en algún horario
+                const yaRegistradoManana = registros.some(registro => 
+                    registro.fecha.toDateString() === fecha.toDateString() && registro.horario === 'Mañana'
+                );
+                
+                const yaRegistradoTarde = registros.some(registro => 
+                    registro.fecha.toDateString() === fecha.toDateString() && registro.horario === 'Tarde'
+                );
+                
+                // Horario de mañana
+                let claseManana = 'horario-option';
+                if (cuposManana <= 0) {
+                    claseManana += ' agotado';
+                } else if (yaRegistradoManana) {
+                    claseManana += ' ya-registrado';
+                }
+                
+                contenidoModal += `
+                    <div class="${claseManana}" data-horario="Mañana">
+                        <strong>MAÑANA</strong><br>
+                        <span>09:00 - 12:00</span>
+                        ${cuposManana <= 0 ? '<br><small>AGOTADO</small>' : ''}
+                        ${yaRegistradoManana ? '<br><small>YA REGISTRADO</small>' : ''}
+                    </div>
+                `;
+                
+                // Horario de tarde
+                let claseTarde = 'horario-option';
+                if (cuposTarde <= 0) {
+                    claseTarde += ' agotado';
+                } else if (yaRegistradoTarde) {
+                    claseTarde += ' ya-registrado';
+                }
+                
+                contenidoModal += `
+                    <div class="${claseTarde}" data-horario="Tarde">
+                        <strong>TARDE</strong><br>
+                        <span>14:30 - 17:30</span>
+                        ${cuposTarde <= 0 ? '<br><small>AGOTADO</small>' : ''}
+                        ${yaRegistradoTarde ? '<br><small>YA REGISTRADO</small>' : ''}
+                    </div>
+                `;
+                
+                contenidoModal += `</div>`;
+                
+                modalBody.innerHTML = contenidoModal;
+                
+                // Agregar event listeners a los horarios disponibles
+                const opcionesHorario = document.querySelectorAll('.horario-option:not(.agotado):not(.ya-registrado)');
+                opcionesHorario.forEach(opcion => {
+                    opcion.addEventListener('click', () => {
+                        const horario = opcion.getAttribute('data-horario');
+                        agregarRegistro(fecha, horario);
+                        modalHorarios.style.display = 'none';
+                    });
+                });
+                
+                modalHorarios.style.display = 'flex';
+            }
+            
+            function agregarRegistro(fecha, horario) {
+                // Verificar si ya existe un registro para esta fecha y horario
+                const existeRegistro = registros.some(registro => 
+                    registro.fecha.toDateString() === fecha.toDateString() && registro.horario === horario
+                );
+                
+                if (existeRegistro) {
+                    alert('Ya tienes un registro para este día y horario.');
+                    return;
+                }
+                
+                // Agregar el nuevo registro
+                const nuevoRegistro = {
+                    fecha: fecha,
+                    horario: horario,
+                    id: Date.now() // ID único basado en timestamp
+                };
+                
+                registros.push(nuevoRegistro);
+                actualizarListaRegistros();
+            }
+            
+            function actualizarListaRegistros() {
+                listaRegistros.innerHTML = '';
+                
+                if (registros.length === 0) {
+                    listaRegistros.innerHTML = '<p style="text-align: center; color: #666;">No hay barridos seleccionados</p>';
+                    contadorRegistros.textContent = '0';
+                    return;
+                }
+                
+                registros.forEach((registro, index) => {
+                    const opcionesFecha = { weekday: 'short', month: 'short', day: 'numeric' };
+                    const fechaFormateada = registro.fecha.toLocaleDateString('es-ES', opcionesFecha);
+                    
+                    const registroElement = document.createElement('div');
+                    registroElement.classList.add('registro-item');
+                    registroElement.innerHTML = `
+                        <div>
+                            <strong>${fechaFormateada}</strong> - ${registro.horario}
+                        </div>
+                        <div class="eliminar-item" data-index="${index}">&times;</div>
+                    `;
+                    
+                    listaRegistros.appendChild(registroElement);
+                });
+                
+                contadorRegistros.textContent = registros.length;
+                
+                // Agregar event listeners a los botones de eliminar
+                const botonesEliminar = document.querySelectorAll('.eliminar-item');
+                botonesEliminar.forEach(boton => {
+                    boton.addEventListener('click', (e) => {
+                        const index = parseInt(e.target.getAttribute('data-index'));
+                        eliminarRegistro(index);
+                    });
+                });
+            }
+            
+            function eliminarRegistro(index) {
+                registros.splice(index, 1);
+                actualizarListaRegistros();
+            }
+            
+            function validarTelefono() {
+                const telefono = telefonoInput.value;
+                const regex = /^0\d{9}$/;
+                
+                if (regex.test(telefono)) {
+                    telefonoInput.classList.remove('input-error');
+                    telefonoError.style.display = 'none';
+                    return true;
+                } else {
+                    telefonoInput.classList.add('input-error');
+                    telefonoError.style.display = 'block';
+                    return false;
+                }
+            }
+            
+            function registrarBarridos() {
+                // Validar formulario
+                const codigoAsesor = document.getElementById('codigoAsesor').value;
+                const nombre = document.getElementById('nombre').value;
+                const telefono = telefonoInput.value;
+                const email = document.getElementById('email').value;
+                const equipo = document.getElementById('equipo').value;
+                const confirmacion = document.getElementById('confirmacion').checked;
+                
+                if (!codigoAsesor || !nombre || !telefono || !email || !equipo) {
+                    alert('Por favor, completa todos los campos obligatorios.');
+                    return;
+                }
+                
+                if (!validarTelefono()) {
+                    alert('Por favor, ingresa un número de teléfono válido.');
+                    return;
+                }
+                
+                if (!confirmacion) {
+                    alert('Debes confirmar que asistirás a los barridos seleccionados.');
+                    return;
+                }
+                
+                if (registros.length === 0) {
+                    alert('Debes seleccionar al menos un barrido.');
+                    return;
+                }
+                
+                // En una aplicación real, aquí enviaríamos los datos al servidor
+                alert('¡Registro exitoso! Te has registrado para los barridos seleccionados.');
+                
+                // Limpiar formulario
+                document.getElementById('codigoAsesor').value = '';
+                document.getElementById('nombre').value = '';
+                telefonoInput.value = '';
+                document.getElementById('email').value = '';
+                document.getElementById('equipo').value = '';
+                document.getElementById('confirmacion').checked = false;
+                
+                // Limpiar registros
+                registros = [];
+                actualizarListaRegistros();
+            }
+            
+            // Inicializar la lista de registros
+            actualizarListaRegistros();
+        });
+    </script>
+</body>
+</html>
