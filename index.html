@@ -866,73 +866,69 @@
                     <i class="fas fa-exclamation-triangle"></i> 
                     <strong>Importante:</strong> No puedes registrarte dos veces en el mismo día y horario
                 </div>
-            <form action="https://formspree.io/f/movpgzoz" method="POST">
-                <div class="form-group">
-                    <label for="codigoAsesor">Código de Asesor *</label>
-                    <input type="text" id="codigoAsesor" name="codigoAsesor" required placeholder="Tu código único de asesor">
-                    <small style="color: #666;">Este código identifica tu registro de forma única</small>
-                </div>
-                
-                <div class="form-group">
-                    <label for="nombre">Nombre completo *</label>
-                    <input type="text" id="nombre" name="nombre" required placeholder="INGRESA TU NOMBRE COMPLETO" class="texto-mayusculas">
-                </div>
-                
-                <div class="form-group">
-                    <label for="telefono">Teléfono *</label>
-                    <input type="tel" id="telefono" name="telefono" required placeholder="0XXXXXXXXX" maxlength="10">
-                    <div class="error-message" id="telefonoError">El teléfono debe tener 10 dígitos numéricos y comenzar con 0</div>
-                    <small style="color: #666;">Formato: 0 + 9 dígitos (Ej: 0960601592)</small>
-                </div>
-                
-                <div class="form-group">
-                    <label for="email">Correo electrónico *</label>
-                    <input type="email" id="email" name="email" required placeholder="ejemplo@correo.com">
-                </div>
-                
-                <div class="form-group">
-                    <label for="equipo">Equipo al que pertenece *</label>
-                    <select id="equipo" name="equipo" required>
-                        <option value="">-- Selecciona tu equipo --</option>
-                        <option value="ASTILLERO">ASTILLERO</option>
-                        <option value="AUTOGESTION">AUTOGESTIÓN</option>
-                        <option value="CAPACITACION">CAPACITACIÓN</option>
-                        <option value="DIGITAL">DIGITAL</option>
-                        <option value="IMPETU">IMPETU</option>
-                        <option value="LEGENDARIOS">LEGENDARIOS</option>
-                        <option value="MILENIUM">MILENIUM</option>
-                        <option value="NUEVO AMANECER">NUEVO AMANECER</option>
-                        <option value="PERLA">PERLA</option>
-                        <option value="RAÍCES">RAÍCES</option>
-                        <option value="RENOVACIÓN">RENOVACIÓN</option>
-                        <option value="RENTABILIZACION">RENTABILIZACIÓN</option>
-                        <option value="ROBLES">ROBLES</option>
-                        <option value="TURNOS">TURNOS</option>
-                        <option value="VISIONARIOS">VISIONARIOS</option>
-                    </select>
-                </div>
-                
-                <div class="resumen-registro">
-                    <div class="resumen-header">
-                        <h3>Barridos Seleccionados</h3>
-                        <span class="badge" id="contadorRegistros">0</span>
-                    </div>
-                    <div class="lista-registros" id="listaRegistros">
-                        <!-- Los registros aparecerán aquí -->
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="confirmacion" name="confirmacion" required>
-                        <label for="confirmacion">Confirmo que asistiré a los barridos seleccionados</label>
-                    </div>
-                </div>
-                
-                <button type="submit" class="registro-btn" id="registroBtn">
-                    <i class="fas fa-calendar-check"></i> REGISTRARME
-                </button>
-            </div>
+         <form action="https://formspree.io/f/movpgzoz" method="POST">
+<div class="form-group">
+<label for="codigoAsesor">Código de Asesor *</label>
+<input type="text" id="codigoAsesor" name="codigoAsesor" required placeholder="Tu código único de asesor">
+</div>
+
+
+<div class="form-group">
+<label for="nombre">Nombre completo *</label>
+<input type="text" id="nombre" name="nombre" required placeholder="INGRESA TU NOMBRE COMPLETO" class="texto-mayusculas">
+</div>
+
+
+<div class="form-group">
+<label for="telefono">Teléfono *</label>
+<input type="tel" id="telefono" name="telefono" required placeholder="0XXXXXXXXX" maxlength="10">
+</div>
+
+
+<div class="form-group">
+<label for="email">Correo electrónico *</label>
+<input type="email" id="email" name="email" required placeholder="ejemplo@correo.com">
+</div>
+
+
+<div class="form-group">
+<label for="equipo">Equipo al que pertenece *</label>
+<select id="equipo" name="equipo" required>
+<option value="">-- Selecciona tu equipo --</option>
+<option value="ASTILLERO">ASTILLERO</option>
+<option value="AUTOGESTION">AUTOGESTIÓN</option>
+<option value="CAPACITACION">CAPACITACIÓN</option>
+<option value="DIGITAL">DIGITAL</option>
+<option value="IMPETU">IMPETU</option>
+<option value="LEGENDARIOS">LEGENDARIOS</option>
+<option value="MILENIUM">MILENIUM</option>
+<option value="NUEVO AMANECER">NUEVO AMANECER</option>
+<option value="PERLA">PERLA</option>
+<option value="RAICES">RAÍCES</option>
+<option value="RENOVACION">RENOVACIÓN</option>
+<option value="RENTABILIZACION">RENTABILIZACIÓN</option>
+<option value="ROBLES">ROBLES</option>
+<option value="TURNOS">TURNOS</option>
+<option value="VISIONARIOS">VISIONARIOS</option>
+</select>
+</div>
+
+
+<div class="form-group">
+<div class="checkbox-group">
+<input type="checkbox" id="confirmacion" name="confirmacion" required>
+<label for="confirmacion">Confirmo que asistiré a los barridos seleccionados</label>
+</div>
+</div>
+
+
+<input type="hidden" name="_next" value="https://tuusuario.github.io/gracias.html">
+
+
+<button type="submit" class="registro-btn" id="registroBtn">
+<i class="fas fa-calendar-check"></i> REGISTRARME
+</button>
+</form>
             
             <footer>
                 <div class="footer-info">
