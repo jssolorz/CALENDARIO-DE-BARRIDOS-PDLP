@@ -1632,14 +1632,19 @@
         });
         
 // Función para guardar registro completo en Google Sheets (VERSIÓN PRUEBA)
-async function guardarRegistroCompleto(datos) {
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwmvo4gT3Q__DROv31esOzKZ8A4-41GRFtXNYIMtsdPT1G_2Kngpawv3GsLzEcvN7Oo/exec';
-    
-    console.log('📤 Enviando datos a Google Sheets...', datos);
-    
-    try {
-        // Para cada barrido registrado, enviar individualmente
-        for (const barrido of datos.registros) {
+function guardarRegistroCompleto(datos) {
+    return new Promise((resolve, reject) => {
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwmvo4gT3Q__DROv31esOzKZ8A4-41GRFtXNYIMtsdPT1G_2Kngpawv3GsLzEcvN7Oo/exec';
+        
+        let completed = 0;
+        const total = datos.registros.length;
+        
+        if (total === 0) {
+            resolve(true);
+            return;
+        }
+        
+        datos.registros.forEach(barrido => {
             const datosEnvio = {
                 codigoAsesor: datos.codigoAsesor,
                 nombre: datos.nombre,
@@ -1652,31 +1657,28 @@ async function guardarRegistroCompleto(datos) {
                 confirmacion: 'SÍ'
             };
             
-            console.log('📨 Enviando:', datosEnvio);
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', SCRIPT_URL, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
             
-            // ⚡ USAR FETCH DIRECTAMENTE SIN PROXY CORS
-            const response = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors', // ← Esto evita problemas de CORS
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(datosEnvio)
-            });
+            xhr.onload = function() {
+                completed++;
+                if (completed === total) {
+                    resolve(true);
+                }
+            };
             
-            console.log('✅ Respuesta recibida (modo no-cors)');
+            xhr.onerror = function() {
+                completed++;
+                if (completed === total) {
+                    reject(new Error('Error en una o más peticiones'));
+                }
+            };
             
-            // En modo no-cors no podemos leer la respuesta, pero sabemos que se envió
-        }
-        
-        return true;
-        
-    } catch (error) {
-        console.error('❌ Error al guardar en Google Sheets:', error);
-        // En modo no-cors, los errores de red aún se capturan
-        throw error;
-    }
-}        
+            xhr.send(JSON.stringify(datosEnvio));
+        });
+    });
+}      
         // Función para generar y descargar Excel
         function descargarExcel() {
             if (!isAuthenticated) {
