@@ -1627,15 +1627,47 @@
         });
         
         // Función para guardar registro completo
-        function guardarRegistroCompleto(datos) {
-            const registrosCompletos = JSON.parse(localStorage.getItem('registrosCompletos2025') || '[]');
-            registrosCompletos.push({
-                ...datos,
-                fechaRegistro: new Date().toLocaleString('es-ES'),
-                id: Date.now() + Math.random().toString(36).substr(2, 9)
+        // Función para guardar registro completo en Google Sheets
+async function guardarRegistroCompleto(datos) {
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwmvo4gT3Q__DROv31esOzKZ8A4-41GRFtXNYIMtsdPT1G_2Kngpawv3GsLzEcvN7Oo/exec';
+    
+    try {
+        // Para cada barrido registrado, enviar individualmente
+        for (const barrido of datos.registros) {
+            const datosEnvio = {
+                codigoAsesor: datos.codigoAsesor,
+                nombre: datos.nombre,
+                telefono: datos.telefono,
+                email: datos.email,
+                equipo: datos.equipo,
+                fechaBarrido: barrido.fechaTexto,
+                horario: barrido.horario,
+                tipoHorario: barrido.tipoHorario,
+                confirmacion: 'SÍ'
+            };
+            
+            const response = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(datosEnvio)
             });
-            localStorage.setItem('registrosCompletos2025', JSON.stringify(registrosCompletos));
+            
+            const result = await response.json();
+            
+            if (result.status !== 'success') {
+                throw new Error(result.message);
+            }
         }
+        
+        return true;
+        
+    } catch (error) {
+        console.error('Error al guardar en Google Sheets:', error);
+        throw error;
+    }
+}
         
         // Función para generar y descargar Excel
         function descargarExcel() {
@@ -1899,87 +1931,103 @@
         }
         
         // Evento para el botón de registro
-        registroBtn.addEventListener('click', function() {
-            const nombre = document.getElementById('nombre').value;
-            const telefono = document.getElementById('telefono').value;
-            const email = document.getElementById('email').value;
-            const codigoAsesor = codigoAsesorInput.value.trim();
-            const equipo = equipoSelect.value;
-            const confirmacion = document.getElementById('confirmacion').checked;
-            
-            if (!nombre || !telefono || !email || !codigoAsesor || !equipo) {
-                alert('Por favor completa todos los campos obligatorios');
-                return;
-            }
-            
-            if (!validarTelefono(telefono)) {
-                alert('Por favor ingresa un número de teléfono válido (10 dígitos que comienzan con 0)');
-                telefonoInput.focus();
-                return;
-            }
-            
-            if (!confirmacion) {
-                alert('Debes confirmar que asistirás a los barridos seleccionados');
-                return;
-            }
-            
-            const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
-            const registros = registrosAsesores[codigoAsesor] || [];
-            
-            if (registros.length === 0) {
-                alert('Por favor selecciona al menos un barrido en el calendario');
-                return;
-            }
-            
-            // Mostrar mensaje de carga
-            registroBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> REGISTRANDO...';
-            registroBtn.disabled = true;
-            
-            try {
-                // Preparar datos para guardar
-                const datosRegistro = {
-                    codigoAsesor: codigoAsesor,
-                    nombre: nombre,
-                    telefono: telefono,
-                    email: email,
-                    equipo: equipo,
-                    registros: registros
-                };
-                
-                // Guardar registro completo
-                guardarRegistroCompleto(datosRegistro);
-                
-                // Restaurar botón
-                registroBtn.innerHTML = '<i class="fas fa-calendar-check"></i> REGISTRARME';
-                registroBtn.disabled = false;
-                
-                alert(`✅ ¡Registro exitoso!\n\nTe has registrado para ${registros.length} barrido(s).\n\nLos datos han sido guardados en el sistema.`);
-                
-                // Limpiar formulario
-                document.getElementById('nombre').value = '';
-                document.getElementById('telefono').value = '';
-                document.getElementById('email').value = '';
-                codigoAsesorInput.value = '';
-                equipoSelect.value = '';
-                document.getElementById('confirmacion').checked = false;
-                
-                // Limpiar registros locales
-                const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
-                delete registrosAsesores[codigoAsesor];
-                localStorage.setItem('registrosAsesores2025', JSON.stringify(registrosAsesores));
-                
-                actualizarResumen();
-                generarCalendario();
-                
-            } catch (error) {
-                // Restaurar botón en caso de error
-                registroBtn.innerHTML = '<i class="fas fa-calendar-check"></i> REGISTRARME';
-                registroBtn.disabled = false;
-                
-                alert('⚠️ Error al guardar el registro. Por favor intenta nuevamente.\n\nSi el problema persiste, contacta al administrador.');
-                console.error('Error:', error);
-            }
-        });
+        // Evento para el botón de registro
+registroBtn.addEventListener('click', async function() {
+    const nombre = document.getElementById('nombre').value;
+    const telefono = document.getElementById('telefono').value;
+    const email = document.getElementById('email').value;
+    const codigoAsesor = codigoAsesorInput.value.trim();
+    const equipo = equipoSelect.value;
+    const confirmacion = document.getElementById('confirmacion').checked;
+    
+    // Validaciones...
+    if (!nombre || !telefono || !email || !codigoAsesor || !equipo) {
+        alert('Por favor completa todos los campos obligatorios');
+        return;
+    }
+    
+    if (!validarTelefono(telefono)) {
+        alert('Por favor ingresa un número de teléfono válido');
+        return;
+    }
+    
+    if (!confirmacion) {
+        alert('Debes confirmar que asistirás a los barridos seleccionados');
+        return;
+    }
+    
+    const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
+    const registros = registrosAsesores[codigoAsesor] || [];
+    
+    if (registros.length === 0) {
+        alert('Por favor selecciona al menos un barrido en el calendario');
+        return;
+    }
+    
+    // Mostrar mensaje de carga
+    registroBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> REGISTRANDO...';
+    registroBtn.disabled = true;
+    
+    try {
+        // Preparar datos para guardar
+        const datosRegistro = {
+            codigoAsesor: codigoAsesor,
+            nombre: nombre,
+            telefono: telefono,
+            email: email,
+            equipo: equipo,
+            registros: registros
+        };
+        
+        // Guardar en Google Sheets
+        await guardarRegistroCompleto(datosRegistro);
+        
+        // También guardar localmente (backup)
+        guardarRegistroLocal(datosRegistro);
+        
+        alert(`✅ ¡Registro exitoso!\n\nTe has registrado para ${registros.length} barrido(s).\n\nLos datos han sido guardados en el sistema.`);
+        
+        // Limpiar formulario
+        limpiarFormulario();
+        
+    } catch (error) {
+        alert('⚠️ Error al guardar el registro. Por favor intenta nuevamente.\n\nSi el problema persiste, contacta al administrador.');
+        console.error('Error:', error);
+    } finally {
+        // Restaurar botón
+        registroBtn.innerHTML = '<i class="fas fa-calendar-check"></i> REGISTRARME';
+        registroBtn.disabled = false;
+    }
+});
+
+// Función para guardar localmente (backup)
+function guardarRegistroLocal(datos) {
+    const registrosCompletos = JSON.parse(localStorage.getItem('registrosCompletos2025') || '[]');
+    registrosCompletos.push({
+        ...datos,
+        fechaRegistro: new Date().toLocaleString('es-ES'),
+        id: Date.now() + Math.random().toString(36).substr(2, 9)
+    });
+    localStorage.setItem('registrosCompletos2025', JSON.stringify(registrosCompletos));
+}
+
+// Función para limpiar el formulario
+function limpiarFormulario() {
+    document.getElementById('nombre').value = '';
+    document.getElementById('telefono').value = '';
+    document.getElementById('email').value = '';
+    codigoAsesorInput.value = '';
+    equipoSelect.value = '';
+    document.getElementById('confirmacion').checked = false;
+    
+    // Limpiar registros locales del asesor
+    const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
+    delete registrosAsesores[codigoAsesorInput.value.trim()];
+    localStorage.setItem('registrosAsesores2025', JSON.stringify(registrosAsesores));
+    
+    actualizarResumen();
+    generarCalendario();
+}
         
         // Eventos para los botones de descarga
         descargarRegistrosBtn.addEventListener('click', descargarExcel);
