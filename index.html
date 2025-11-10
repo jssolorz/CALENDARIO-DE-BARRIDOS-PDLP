@@ -1129,7 +1129,6 @@
         }
     }
 
-    
     // Función para preparar datos para Google Sheets
     function prepararDatosParaSheets(datosRegistro) {
         // Crear un registro por cada barrido seleccionado
@@ -1152,89 +1151,29 @@
         return registrosParaSheets;
     }
 
-// Función para guardar registro en Google Sheets - MEJORADA
-async function guardarRegistroEnSheets(datosRegistro) {
-    try {
-        const registrosParaSheets = prepararDatosParaSheets(datosRegistro);
-        
-        console.log('Enviando datos a Google Sheets:', registrosParaSheets);
-        
-        const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                action: 'guardarRegistro',
-                registros: registrosParaSheets
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const result = await response.json();
-        console.log('Respuesta de Google Sheets:', result);
-        return result;
-        
-    } catch (error) {
-        console.error('Error detallado al guardar en Sheets:', error);
-        
-        // Proporcionar más información sobre el error
-        let mensajeError = 'Error de conexión: ' + error.message;
-        
-        if (error.message.includes('Failed to fetch')) {
-            mensajeError += '\n\nPosibles causas:\n' +
-                           '• URL de Google Apps Script incorrecta\n' +
-                           '• Apps Script no desplegado correctamente\n' +
-                           '• Problemas de CORS\n' +
-                           '• La aplicación web no está configurada para "Cualquier persona"';
-        }
-        
-        return { 
-            success: false, 
-            message: mensajeError 
-        };
-    }
-}
-
-       // Función para probar la conexión con Google Apps Script
-async function probarConexionGoogleAppsScript() {
-    try {
-        console.log('Probando conexión con:', GOOGLE_APPS_SCRIPT_URL);
-        
-        const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=test`, {
-            method: 'GET',
-            mode: 'no-cors' // Intenta con no-cors primero
-        });
-        
-        console.log('Respuesta de prueba:', response);
-        return true;
-    } catch (error) {
-        console.log('Error en prueba de conexión:', error);
-        
-        // Intenta con una solicitud POST simple
+    // Función para guardar registro en Google Sheets
+    async function guardarRegistroEnSheets(datosRegistro) {
         try {
+            const registrosParaSheets = prepararDatosParaSheets(datosRegistro);
+            
             const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ action: 'test' })
+                body: JSON.stringify({
+                    action: 'guardarRegistro',
+                    registros: registrosParaSheets
+                })
             });
-            console.log('Respuesta POST de prueba:', response);
-            return true;
-        } catch (postError) {
-            console.log('Error en prueba POST:', postError);
-            return false;
+            
+            const result = await response.json();
+            return result;
+        } catch (error) {
+            console.error('Error al guardar en Sheets:', error);
+            return { success: false, message: 'Error de conexión: ' + error.message };
         }
     }
-}
- 
-
-        
-
 
     // Función para obtener cupos
     async function obtenerCupos() {
@@ -1975,42 +1914,6 @@ async function probarConexionGoogleAppsScript() {
                 }
             }
         }
-
- function doPost(e) {
-  try {
-    const data = JSON.parse(e.postData.contents);
-    
-    if (data.action === 'guardarRegistro') {
-      // Tu código para guardar en Google Sheets
-      return ContentService.createTextOutput(JSON.stringify({
-        success: true,
-        message: 'Registro guardado exitosamente'
-      })).setMimeType(ContentService.MimeType.JSON);
-    }
-    
-    if (data.action === 'test') {
-      return ContentService.createTextOutput(JSON.stringify({
-        success: true,
-        message: 'Conexión exitosa'
-      })).setMimeType(ContentService.MimeType.JSON);
-    }
-    
-  } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({
-      success: false,
-      message: 'Error: ' + error.toString()
-    })).setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-function doGet(e) {
-  if (e.parameter.action === 'test') {
-    return ContentService.createTextOutput(JSON.stringify({
-      success: true,
-      message: 'Conexión GET exitosa'
-    })).setMimeType(ContentService.MimeType.JSON);
-  }
-}
         
         // Función para resetear cupos de un día específico
         function resetearCuposDia(dia) {
@@ -2083,124 +1986,98 @@ function doGet(e) {
         }
 
         // EVENTO PARA EL BOTÓN DE REGISTRO MODIFICADO
-        // EVENTO PARA EL BOTÓN DE REGISTRO MODIFICADO - CORREGIDO
-registroBtn.addEventListener('click', async function() {
-    const nombre = document.getElementById('nombre').value;
-    const telefono = document.getElementById('telefono').value;
-    const email = document.getElementById('email').value;
-    const codigoAsesor = codigoAsesorInput.value.trim();
-    const equipo = equipoSelect.value;
-    const confirmacion = document.getElementById('confirmacion').checked;
-    
-    if (!nombre || !telefono || !email || !codigoAsesor || !equipo) {
-        alert('Por favor completa todos los campos obligatorios');
-        return;
-    }
-    
-    if (!validarTelefono(telefono)) {
-        alert('Por favor ingresa un número de teléfono válido (10 dígitos que comienzan con 0)');
-        telefonoInput.focus();
-        return;
-    }
-    
-    if (!confirmacion) {
-        alert('Debes confirmar que asistirás a los barridos seleccionados');
-        return;
-    }
-    
-    const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
-    const registros = registrosAsesores[codigoAsesor] || [];
-    
-    if (registros.length === 0) {
-        alert('Por favor selecciona al menos un barrido en el calendario');
-        return;
-    }
-    
-    // Mostrar mensaje de carga
-    registroBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> REGISTRANDO...';
-    registroBtn.disabled = true;
-    
-    // Preparar datos para guardar (fuera del try para que esté disponible en catch)
-    const datosRegistro = {
-        codigoAsesor: codigoAsesor,
-        nombre: nombre,
-        telefono: telefono,
-        email: email,
-        equipo: equipo,
-        registros: registros
-    };
-    
-    try {
-        // Guardar registro en Google Sheets
-        const resultado = await (datosRegistro);
-        
-        if (resultado.success) {
-            // Guardar registro completo localmente también
-            guardarRegistroCompleto(datosRegistro);
+        registroBtn.addEventListener('click', async function() {
+            const nombre = document.getElementById('nombre').value;
+            const telefono = document.getElementById('telefono').value;
+            const email = document.getElementById('email').value;
+            const codigoAsesor = codigoAsesorInput.value.trim();
+            const equipo = equipoSelect.value;
+            const confirmacion = document.getElementById('confirmacion').checked;
             
-            alert(`✅ ¡Registro exitoso!\n\nTe has registrado para ${registros.length} barrido(s).\n\nLos datos han sido guardados en el sistema.`);
+            if (!nombre || !telefono || !email || !codigoAsesor || !equipo) {
+                alert('Por favor completa todos los campos obligatorios');
+                return;
+            }
             
-            // Limpiar formulario
-            document.getElementById('nombre').value = '';
-            document.getElementById('telefono').value = '';
-            document.getElementById('email').value = '';
-            codigoAsesorInput.value = '';
-            equipoSelect.value = '';
-            document.getElementById('confirmacion').checked = false;
+            if (!validarTelefono(telefono)) {
+                alert('Por favor ingresa un número de teléfono válido (10 dígitos que comienzan con 0)');
+                telefonoInput.focus();
+                return;
+            }
             
-            // Limpiar registros locales
+            if (!confirmacion) {
+                alert('Debes confirmar que asistirás a los barridos seleccionados');
+                return;
+            }
+            
             const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
-            delete registrosAsesores[codigoAsesor];
-            localStorage.setItem('registrosAsesores2025', JSON.stringify(registrosAsesores));
+            const registros = registrosAsesores[codigoAsesor] || [];
             
-            actualizarResumen();
-            generarCalendario();
+            if (registros.length === 0) {
+                alert('Por favor selecciona al menos un barrido en el calendario');
+                return;
+            }
             
-        } else {
-            throw new Error(resultado.message || 'Error al guardar en Google Sheets');
-        }
-        
-    } catch (error) {
-        console.error('Error al guardar registro:', error);
-        
-        // Intentar guardar localmente como respaldo
-        try {
-            guardarRegistroCompleto(datosRegistro);
-            alert(`⚠️ Se guardó localmente pero hubo un problema con el servidor.\n\nTe has registrado para ${registros.length} barrido(s).\n\nError: ${error.message}`);
-        } catch (backupError) {
-            console.error('Error en respaldo local:', backupError);
-            alert('❌ Error crítico al guardar el registro. Por favor contacta al administrador.');
-        }
-    } finally {
-        // Restaurar botón siempre
-        registroBtn.innerHTML = '<i class="fas fa-calendar-check"></i> REGISTRARME';
-        registroBtn.disabled = false;
-    }
-});
-
-        // Función para guardar registro completo - VERIFICAR QUE EXISTA
-function guardarRegistroCompleto(datos) {
-    try {
-        const registrosCompletos = JSON.parse(localStorage.getItem('registrosCompletos2025') || '[]');
-        registrosCompletos.push({
-            ...datos,
-            fechaRegistro: new Date().toLocaleString('es-ES'),
-            id: Date.now() + Math.random().toString(36).substr(2, 9)
+            // Mostrar mensaje de carga
+            registroBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> REGISTRANDO...';
+            registroBtn.disabled = true;
+            
+            try {
+                // Preparar datos para guardar
+                const datosRegistro = {
+                    codigoAsesor: codigoAsesor,
+                    nombre: nombre,
+                    telefono: telefono,
+                    email: email,
+                    equipo: equipo,
+                    registros: registros
+                };
+                
+                // Guardar registro en Google Sheets
+                const resultado = await guardarRegistroEnSheets(datosRegistro);
+                
+                if (resultado.success) {
+                    // Guardar registro completo localmente también
+                    guardarRegistroCompleto(datosRegistro);
+                    
+                    alert(`✅ ¡Registro exitoso!\n\nTe has registrado para ${registros.length} barrido(s).\n\nLos datos han sido guardados en el sistema.`);
+                    
+                    // Limpiar formulario
+                    document.getElementById('nombre').value = '';
+                    document.getElementById('telefono').value = '';
+                    document.getElementById('email').value = '';
+                    codigoAsesorInput.value = '';
+                    equipoSelect.value = '';
+                    document.getElementById('confirmacion').checked = false;
+                    
+                    // Limpiar registros locales
+                    const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
+                    delete registrosAsesores[codigoAsesor];
+                    localStorage.setItem('registrosAsesores2025', JSON.stringify(registrosAsesores));
+                    
+                    actualizarResumen();
+                    generarCalendario();
+                    
+                } else {
+                    throw new Error(resultado.message || 'Error al guardar en Google Sheets');
+                }
+                
+            } catch (error) {
+                console.error('Error al guardar registro:', error);
+                
+                // Intentar guardar localmente como respaldo
+                try {
+                    guardarRegistroCompleto(datosRegistro);
+                    alert(`⚠️ Se guardó localmente pero hubo un problema con el servidor.\n\nTe has registrado para ${registros.length} barrido(s).\n\nError: ${error.message}`);
+                } catch (backupError) {
+                    alert('❌ Error crítico al guardar el registro. Por favor contacta al administrador.');
+                }
+            } finally {
+                // Restaurar botón siempre
+                registroBtn.innerHTML = '<i class="fas fa-calendar-check"></i> REGISTRARME';
+                registroBtn.disabled = false;
+            }
         });
-        localStorage.setItem('registrosCompletos2025', JSON.stringify(registrosCompletos));
-        return true;
-    } catch (error) {
-        console.error('Error en guardarRegistroCompleto:', error);
-        return false;
-    }
-}
-
-        // Función temporal para debugging
-function debugRegistro() {
-    const registrosCompletos = JSON.parse(localStorage.getItem('registrosCompletos2025') || '[]');
-    console.log('Registros completos en localStorage:', registrosCompletos);
-    console.log('Registros asesores en localStorage:', JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}'));
-}
         
         // Eventos para los botones de descarga
         descargarRegistrosBtn.addEventListener('click', descargarExcel);
