@@ -2,11 +2,11 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-     <!--meta http-equiv="Content-Security-Policy" 
+     <meta http-equiv="Content-Security-Policy" 
       content="default-src 'self' https://script.google.com https://docs.google.com https://sheets.google.com https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com 'unsafe-inline' 'unsafe-eval'; 
                connect-src 'self' https://script.google.com https://docs.google.com https://sheets.google.com https://cdnjs.cloudflare.com;
                script-src 'self' https://cdnjs.cloudflare.com https://script.google.com 'unsafe-inline' 'unsafe-eval';
-               style-src 'self' https://cdnjs.cloudflare.com https://fonts.googleapis.com 'unsafe-inline';"-->
+               style-src 'self' https://cdnjs.cloudflare.com https://fonts.googleapis.com 'unsafe-inline';">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calendarizo de Barridos - Noviembre 2025 - Parque de la Paz</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1632,19 +1632,14 @@
         });
         
 // Función para guardar registro completo en Google Sheets (VERSIÓN PRUEBA)
-function guardarRegistroCompleto(datos) {
-    return new Promise((resolve, reject) => {
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwmvo4gT3Q__DROv31esOzKZ8A4-41GRFtXNYIMtsdPT1G_2Kngpawv3GsLzEcvN7Oo/exec';
-        
-        let completed = 0;
-        const total = datos.registros.length;
-        
-        if (total === 0) {
-            resolve(true);
-            return;
-        }
-        
-        datos.registros.forEach(barrido => {
+async function guardarRegistroCompleto(datos) {
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwmvo4gT3Q__DROv31esOzKZ8A4-41GRFtXNYIMtsdPT1G_2Kngpawv3GsLzEcvN7Oo/exec';
+    
+    console.log('📤 Enviando datos a Google Sheets...', datos);
+    
+    try {
+        // Para cada barrido registrado, enviar individualmente
+        for (const barrido of datos.registros) {
             const datosEnvio = {
                 codigoAsesor: datos.codigoAsesor,
                 nombre: datos.nombre,
@@ -1657,28 +1652,31 @@ function guardarRegistroCompleto(datos) {
                 confirmacion: 'SÍ'
             };
             
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', SCRIPT_URL, true);
-            xhr.setRequestHeader('Content-Type', 'application/json');
+            console.log('📨 Enviando:', datosEnvio);
             
-            xhr.onload = function() {
-                completed++;
-                if (completed === total) {
-                    resolve(true);
-                }
-            };
+            // ⚡ USAR FETCH DIRECTAMENTE SIN PROXY CORS
+            const response = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors', // ← Esto evita problemas de CORS
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(datosEnvio)
+            });
             
-            xhr.onerror = function() {
-                completed++;
-                if (completed === total) {
-                    reject(new Error('Error en una o más peticiones'));
-                }
-            };
+            console.log('✅ Respuesta recibida (modo no-cors)');
             
-            xhr.send(JSON.stringify(datosEnvio));
-        });
-    });
-}      
+            // En modo no-cors no podemos leer la respuesta, pero sabemos que se envió
+        }
+        
+        return true;
+        
+    } catch (error) {
+        console.error('❌ Error al guardar en Google Sheets:', error);
+        // En modo no-cors, los errores de red aún se capturan
+        throw error;
+    }
+}        
         // Función para generar y descargar Excel
         function descargarExcel() {
             if (!isAuthenticated) {
