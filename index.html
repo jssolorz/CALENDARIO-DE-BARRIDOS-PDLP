@@ -1652,7 +1652,7 @@
             contadorRegistros.textContent = registros.length;
         }
         
-        // NUEVA FUNCIÓN: Descargar constancia personal con columnas iguales a Google Sheets
+        // NUEVA FUNCIÓN: Descargar constancia personal
         function descargarConstanciaPersonal() {
             const codigoAsesor = codigoAsesorInput.value.trim();
             
@@ -1674,31 +1674,21 @@
             const registroAsesor = registrosCompletos.find(reg => reg.codigoAsesor === codigoAsesor);
             
             let nombreAsesor = "Asesor";
-            let telefonoAsesor = "";
-            let emailAsesor = "";
             let equipoAsesor = "Equipo";
-            let fechaRegistro = new Date().toLocaleString('es-ES');
             
             if (registroAsesor) {
                 nombreAsesor = registroAsesor.nombre;
-                telefonoAsesor = registroAsesor.telefono;
-                emailAsesor = registroAsesor.email;
                 equipoAsesor = registroAsesor.equipo;
-                fechaRegistro = registroAsesor.fechaRegistro || fechaRegistro;
             }
             
-            // Preparar datos para Excel con las mismas columnas que Google Sheets
+            // Preparar datos para Excel
             const datosExcel = registros.map(registro => ({
-                'FechaRegistro': fechaRegistro,
-                'CodigoAsesor': codigoAsesor,
+                'Código Asesor': codigoAsesor,
                 'Nombre': nombreAsesor,
-                'Telefono': telefonoAsesor,
-                'Email': emailAsesor,
                 'Equipo': equipoAsesor,
-                'FechaBarrido': registro.fechaTexto,
+                'Fecha Barrido': registro.fechaTexto,
                 'Horario': registro.horario,
-                'TipoHorario': registro.tipoHorario === 'manana' ? 'manana' : 'tarde',
-                'Confirmacion': 'SÍ'
+                'Tipo Horario': registro.tipoHorario === 'manana' ? 'Mañana' : 'Tarde'
             }));
             
             // Crear libro de Excel
@@ -1746,16 +1736,15 @@
                 // Para cada barrido registrado, enviar individualmente
                 for (const barrido of datos.registros) {
                     const datosEnvio = {
-                        FechaRegistro: new Date().toLocaleString('es-ES'),
-                        CodigoAsesor: datos.codigoAsesor,
-                        Nombre: datos.nombre,
-                        Telefono: datos.telefono,
-                        Email: datos.email,
-                        Equipo: datos.equipo,
-                        FechaBarrido: barrido.fechaTexto,
-                        Horario: barrido.horario,
-                        TipoHorario: barrido.tipoHorario,
-                        Confirmacion: 'SÍ',
+                        codigoAsesor: datos.codigoAsesor,
+                        nombre: datos.nombre,
+                        telefono: datos.telefono,
+                        email: datos.email,
+                        equipo: datos.equipo,
+                        fechaBarrido: barrido.fechaTexto,
+                        horario: barrido.horario,
+                        tipoHorario: barrido.tipoHorario,
+                        confirmacion: 'SÍ',
                         timestamp: new Date().toISOString()
                     };
                     
@@ -1772,7 +1761,7 @@
                             body: JSON.stringify(datosEnvio)
                         });
                         
-                        console.log('✅ Barrido registrado en Google Sheets:', datosEnvio.FechaBarrido, datosEnvio.Horario);
+                        console.log('✅ Barrido registrado en Google Sheets:', datosEnvio.fechaBarrido, datosEnvio.horario);
                         
                         // Pequeña pausa entre envíos para evitar sobrecarga
                         await new Promise(resolve => setTimeout(resolve, 500));
@@ -1811,16 +1800,15 @@
             const datosExcel = registrosCompletos.map(registro => {
                 // Aplanar los registros de barridos
                 const barridos = registro.registros.map(barrido => ({
-                    'FechaRegistro': registro.fechaRegistro,
-                    'CodigoAsesor': registro.codigoAsesor,
+                    'Código Asesor': registro.codigoAsesor,
                     'Nombre': registro.nombre,
-                    'Telefono': registro.telefono,
+                    'Teléfono': registro.telefono,
                     'Email': registro.email,
                     'Equipo': registro.equipo,
-                    'FechaBarrido': barrido.fechaTexto,
+                    'Fecha Registro': registro.fechaRegistro,
+                    'Fecha Barrido': barrido.fechaTexto,
                     'Horario': barrido.horario,
-                    'TipoHorario': barrido.tipoHorario,
-                    'Confirmacion': 'SÍ'
+                    'Tipo Horario': barrido.tipoHorario
                 }));
                 
                 return barridos;
