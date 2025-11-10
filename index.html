@@ -1966,6 +1966,8 @@ registroBtn.addEventListener('click', async function() {
     
     const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
     const registros = registrosAsesores[codigoAsesor] || [];
+
+    alert(`Tienes ${registros.length} barrido(s) registrado(s)`);
     
     if (registros.length === 0) {
         alert('Por favor selecciona al menos un barrido en el calendario');
@@ -1988,6 +1990,7 @@ registroBtn.addEventListener('click', async function() {
         };
         
         // Guardar en Google Sheets
+
         await guardarRegistroCompleto(datosRegistro);
         
         // También guardar localmente (backup)
