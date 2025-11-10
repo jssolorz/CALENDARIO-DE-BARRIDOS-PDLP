@@ -405,12 +405,11 @@
             font-size: 1.2rem;
         }
         
-        /* BOTÓN UNIFICADO - REGISTRARME Y DESCARGAR CONSTANCIA */
         button.registro-btn {
             background: linear-gradient(to right, var(--teal-principal), var(--teal-oscuro));
             color: white;
             border: none;
-            padding: 18px 30px;
+            padding: 16px 30px;
             border-radius: 10px;
             font-size: 1.1rem;
             font-weight: 600;
@@ -419,22 +418,11 @@
             width: 100%;
             margin-top: 20px;
             box-shadow: 0 4px 10px rgba(0, 128, 128, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
         }
         
         button.registro-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 15px rgba(0, 128, 128, 0.4);
-        }
-        
-        button.registro-btn:disabled {
-            background: #cccccc;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
         }
         
         .checkbox-group {
@@ -794,6 +782,38 @@
             transform: translateY(-2px);
         }
         
+        /* Nuevos estilos para el botón de descarga de constancia */
+        .descarga-constancia {
+            background: linear-gradient(to right, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 10px;
+            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .descarga-constancia:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(40, 167, 69, 0.4);
+        }
+        
+        .descarga-constancia:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
         /* Estilos para el mensaje de éxito */
         .mensaje-exito {
             background: #d4edda;
@@ -929,7 +949,7 @@
                 <div class="mensaje-exito" id="mensajeExito">
                     <i class="fas fa-check-circle"></i>
                     <h3>¡Registro Exitoso!</h3>
-                    <p>Tu registro ha sido guardado correctamente y tu constancia se ha descargado automáticamente.</p>
+                    <p>Tu registro ha sido guardado correctamente. Ahora puedes descargar tu constancia.</p>
                 </div>
                 
                 <div class="info-cupos">
@@ -998,6 +1018,11 @@
                     </div>
                 </div>
                 
+                <!-- NUEVO: Botón de descarga de constancia para todos los asesores -->
+                <button class="descarga-constancia" id="descargarConstancia" disabled>
+                    <i class="fas fa-file-excel"></i> DESCARGAR CONSTANCIA
+                </button>
+                
                 <div class="form-group">
                     <div class="checkbox-group">
                         <input type="checkbox" id="confirmacion" name="confirmacion" required>
@@ -1005,11 +1030,8 @@
                     </div>
                 </div>
                 
-                <!-- BOTÓN UNIFICADO - REGISTRARME Y DESCARGAR CONSTANCIA -->
                 <button type="submit" class="registro-btn" id="registroBtn">
-                    <i class="fas fa-calendar-check"></i> 
-                    <i class="fas fa-file-excel"></i>
-                    REGISTRARME Y DESCARGAR CONSTANCIA
+                    <i class="fas fa-calendar-check"></i> REGISTRARME
                 </button>
                 
                 <!-- Sección de Administración (oculta por defecto) -->
@@ -1200,6 +1222,9 @@
         const closeReseteoModal = document.getElementById('closeReseteoModal');
         const cancelarReseteo = document.getElementById('cancelarReseteo');
         const confirmarReseteo = document.getElementById('confirmarReseteo');
+        
+        // NUEVO: Elemento para el botón de descarga de constancia
+        const descargarConstanciaBtn = document.getElementById('descargarConstancia');
         
         // NUEVO: Elemento para el mensaje de éxito
         const mensajeExito = document.getElementById('mensajeExito');
@@ -1583,7 +1608,7 @@
             modalHorarios.style.display = 'flex';
         }
         
-        // Actualizar resumen de registros
+        // Actualizar resumen de registros (MODIFICADO)
         function actualizarResumen() {
             const codigoAsesor = codigoAsesorInput.value.trim();
             let registros = [];
@@ -1597,6 +1622,8 @@
             
             if (registros.length === 0) {
                 listaRegistros.innerHTML = '<p style="text-align: center; color: #777; padding: 20px;">No hay barridos seleccionados</p>';
+                // Deshabilitar botón de descarga si no hay registros
+                descargarConstanciaBtn.disabled = true;
             } else {
                 registros.forEach((registro, index) => {
                     const item = document.createElement('div');
@@ -1610,6 +1637,9 @@
                     `;
                     listaRegistros.appendChild(item);
                 });
+                
+                // Habilitar botón de descarga si hay registros
+                descargarConstanciaBtn.disabled = false;
                 
                 document.querySelectorAll('.eliminar-item').forEach(btn => {
                     btn.addEventListener('click', function() {
@@ -1710,6 +1740,9 @@
             XLSX.writeFile(wb, `Constancia_Barridos_${codigoAsesor}_${new Date().toISOString().slice(0,10)}.xlsx`);
         }
         
+        // Evento para el botón de descarga de constancia
+        descargarConstanciaBtn.addEventListener('click', descargarConstanciaPersonal);
+        
         // Evento para actualizar resumen cuando cambia el código de asesor
         codigoAsesorInput.addEventListener('input', function() {
             actualizarResumen();
@@ -1731,64 +1764,60 @@
             modalHorarios.style.display = 'none';
         });
         
-        // FUNCIÓN CORREGIDA: Para guardar registro completo en Google Sheets
-async function guardarRegistroCompleto(datos) {
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwmvo4gT3Q__DROv31esOzKZ8A4-41GRFtXNYIMtsdPT1G_2Kngpawv3GsLzEcvN7Oo/exec';
-    
-    console.log('📤 Enviando datos a Google Sheets...', datos);
-    
-    try {
-        // Para cada barrido registrado, enviar individualmente
-        for (const barrido of datos.registros) {
-            // CORRECCIÓN: Usar los nombres de columna EXACTOS que espera Google Sheets
-            const datosEnvio = {
-                'Fecha de Registro': new Date().toLocaleString('es-ES'),
-                'Código de Asesor': datos.codigoAsesor,
-                'Nombre Completo': datos.nombre,
-                'Teléfono': datos.telefono,
-                'Correo Electrónico': datos.email,
-                'Equipo': datos.equipo,
-                'Fecha de Barrido': barrido.fechaTexto,
-                'Horario': barrido.horario,
-                'Tipo de Horario': barrido.tipoHorario,
-                'Confirmación': 'SÍ'
-            };
+        // MODIFICACIÓN: Función para guardar registro completo en Google Sheets (VERSIÓN CORREGIDA)
+        async function guardarRegistroCompleto(datos) {
+            const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwmvo4gT3Q__DROv31esOzKZ8A4-41GRFtXNYIMtsdPT1G_2Kngpawv3GsLzEcvN7Oo/exec';
             
-            console.log('📨 Enviando a Google Sheets:', datosEnvio);
+            console.log('📤 Enviando datos a Google Sheets...', datos);
             
             try {
-                // Enviar datos como parámetros URL para evitar problemas CORS
-                const params = new URLSearchParams();
-                for (const key in datosEnvio) {
-                    params.append(key, datosEnvio[key]);
+                // Para cada barrido registrado, enviar individualmente
+                for (const barrido of datos.registros) {
+                    const datosEnvio = {
+                        FechaRegistro: new Date().toLocaleString('es-ES'),
+                        CodigoAsesor: datos.codigoAsesor,
+                        Nombre: datos.nombre,
+                        Telefono: datos.telefono,
+                        Email: datos.email,
+                        Equipo: datos.equipo,
+                        FechaBarrido: barrido.fechaTexto,
+                        Horario: barrido.horario,
+                        TipoHorario: barrido.tipoHorario,
+                        Confirmacion: 'SÍ',
+                        timestamp: new Date().toISOString()
+                    };
+                    
+                    console.log('📨 Enviando:', datosEnvio);
+                    
+                    // USAR FETCH CON MANEJO DE ERRORES MEJORADO
+                    try {
+                        const response = await fetch(SCRIPT_URL, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(datosEnvio)
+                        });
+                        
+                        console.log('✅ Barrido registrado en Google Sheets:', datosEnvio.FechaBarrido, datosEnvio.Horario);
+                        
+                        // Pequeña pausa entre envíos para evitar sobrecarga
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        
+                    } catch (error) {
+                        console.error('❌ Error al enviar barrido individual:', error);
+                        // Continuar con el siguiente barrido incluso si hay error
+                        continue;
+                    }
                 }
                 
-                const urlConParametros = `${SCRIPT_URL}?${params.toString()}`;
-                
-                const response = await fetch(urlConParametros, {
-                    method: 'GET', // Usar GET en lugar de POST para evitar problemas CORS
-                    mode: 'no-cors'
-                });
-                
-                console.log('✅ Barrido registrado en Google Sheets:', datosEnvio['Fecha de Barrido'], datosEnvio['Horario']);
-                
-                // Pequeña pausa entre envíos para evitar sobrecarga
-                await new Promise(resolve => setTimeout(resolve, 800));
+                console.log('✅ Todos los barridos procesados');
+                return true;
                 
             } catch (error) {
-                console.error('❌ Error al enviar barrido individual:', error);
-                // Continuar con el siguiente barrido incluso si hay error
-                continue;
-            }
-        }
-        
-        console.log('✅ Todos los barridos procesados en Google Sheets');
-        return true;
-        
-    } catch (error) {
-        console.error('❌ Error general al guardar en Google Sheets:', error);
-        // Aún así retornamos true para permitir la descarga de la constancia
-        return true;
+                console.error('❌ Error general al guardar en Google Sheets:', error);
+                throw error;
             }
         }
         
@@ -2054,7 +2083,7 @@ async function guardarRegistroCompleto(datos) {
             }
         }
         
-        // MODIFICACIÓN: Evento para el botón unificado - REGISTRARME Y DESCARGAR CONSTANCIA
+        // MODIFICACIÓN: Evento para el botón de registro - Ahora descarga automáticamente la constancia
         registroBtn.addEventListener('click', async function() {
             const nombre = document.getElementById('nombre').value;
             const telefono = document.getElementById('telefono').value;
@@ -2090,7 +2119,7 @@ async function guardarRegistroCompleto(datos) {
             }
             
             // Mostrar mensaje de carga
-            registroBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> PROCESANDO REGISTRO...';
+            registroBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> REGISTRANDO...';
             registroBtn.disabled = true;
             
             try {
@@ -2116,56 +2145,23 @@ async function guardarRegistroCompleto(datos) {
                 // Desplazar la vista hacia el mensaje de éxito
                 mensajeExito.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 
-                // Cambiar texto del botón para indicar descarga
-                registroBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> DESCARGANDO CONSTANCIA...';
-                
-                // Pequeña pausa antes de descargar
+                // Descargar automáticamente la constancia
                 setTimeout(() => {
-                    // Descargar automáticamente la constancia
                     descargarConstanciaPersonal();
-                    
-                    // Restaurar botón a su estado original
-                    registroBtn.innerHTML = `
-                        <i class="fas fa-calendar-check"></i> 
-                        <i class="fas fa-file-excel"></i>
-                        REGISTRARME Y DESCARGAR CONSTANCIA
-                    `;
-                    registroBtn.disabled = false;
-                    
-                    // Limpiar formulario después de descargar
-                    setTimeout(() => {
-                        limpiarFormulario();
-                    }, 1000);
-                    
-                }, 1500);
+                }, 1000);
                 
             } catch (error) {
                 // Aún así mostrar mensaje de éxito y descargar constancia
                 mensajeExito.style.display = 'block';
                 mensajeExito.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 
-                // Cambiar texto del botón para indicar descarga
-                registroBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> DESCARGANDO CONSTANCIA...';
-                
-                // Pequeña pausa antes de descargar
                 setTimeout(() => {
-                    // Descargar automáticamente la constancia
                     descargarConstanciaPersonal();
-                    
-                    // Restaurar botón a su estado original
-                    registroBtn.innerHTML = `
-                        <i class="fas fa-calendar-check"></i> 
-                        <i class="fas fa-file-excel"></i>
-                        REGISTRARME Y DESCARGAR CONSTANCIA
-                    `;
-                    registroBtn.disabled = false;
-                    
-                    // Limpiar formulario después de descargar
-                    setTimeout(() => {
-                        limpiarFormulario();
-                    }, 1000);
-                    
-                }, 1500);
+                }, 1000);
+            } finally {
+                // Restaurar botón
+                registroBtn.innerHTML = '<i class="fas fa-calendar-check"></i> REGISTRARME';
+                registroBtn.disabled = false;
             }
         });
 
@@ -2196,11 +2192,6 @@ async function guardarRegistroCompleto(datos) {
             
             actualizarResumen();
             generarCalendario();
-            
-            // Ocultar mensaje de éxito después de limpiar
-            setTimeout(() => {
-                mensajeExito.style.display = 'none';
-            }, 3000);
         }
         
         // Eventos para los botones de descarga
