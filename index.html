@@ -1731,60 +1731,64 @@
             modalHorarios.style.display = 'none';
         });
         
-        // MODIFICACIÓN: Función para guardar registro completo en Google Sheets (VERSIÓN CORREGIDA)
-        async function guardarRegistroCompleto(datos) {
-            const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwmvo4gT3Q__DROv31esOzKZ8A4-41GRFtXNYIMtsdPT1G_2Kngpawv3GsLzEcvN7Oo/exec';
+        // FUNCIÓN CORREGIDA: Para guardar registro completo en Google Sheets
+async function guardarRegistroCompleto(datos) {
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwmvo4gT3Q__DROv31esOzKZ8A4-41GRFtXNYIMtsdPT1G_2Kngpawv3GsLzEcvN7Oo/exec';
+    
+    console.log('📤 Enviando datos a Google Sheets...', datos);
+    
+    try {
+        // Para cada barrido registrado, enviar individualmente
+        for (const barrido of datos.registros) {
+            // CORRECCIÓN: Usar los nombres de columna EXACTOS que espera Google Sheets
+            const datosEnvio = {
+                'Fecha de Registro': new Date().toLocaleString('es-ES'),
+                'Código de Asesor': datos.codigoAsesor,
+                'Nombre Completo': datos.nombre,
+                'Teléfono': datos.telefono,
+                'Correo Electrónico': datos.email,
+                'Equipo': datos.equipo,
+                'Fecha de Barrido': barrido.fechaTexto,
+                'Horario': barrido.horario,
+                'Tipo de Horario': barrido.tipoHorario,
+                'Confirmación': 'SÍ'
+            };
             
-            console.log('📤 Enviando datos a Google Sheets...', datos);
+            console.log('📨 Enviando a Google Sheets:', datosEnvio);
             
             try {
-                // Para cada barrido registrado, enviar individualmente
-                for (const barrido of datos.registros) {
-                    const datosEnvio = {
-                        FechaRegistro: new Date().toLocaleString('es-ES'),
-                        CodigoAsesor: datos.codigoAsesor,
-                        Nombre: datos.nombre,
-                        Telefono: datos.telefono,
-                        Email: datos.email,
-                        Equipo: datos.equipo,
-                        FechaBarrido: barrido.fechaTexto,
-                        Horario: barrido.horario,
-                        TipoHorario: barrido.tipoHorario,
-                        Confirmacion: 'SÍ',
-                        timestamp: new Date().toISOString()
-                    };
-                    
-                    console.log('📨 Enviando:', datosEnvio);
-                    
-                    // USAR FETCH CON MANEJO DE ERRORES MEJORADO
-                    try {
-                        const response = await fetch(SCRIPT_URL, {
-                            method: 'POST',
-                            mode: 'no-cors',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify(datosEnvio)
-                        });
-                        
-                        console.log('✅ Barrido registrado en Google Sheets:', datosEnvio.FechaBarrido, datosEnvio.Horario);
-                        
-                        // Pequeña pausa entre envíos para evitar sobrecarga
-                        await new Promise(resolve => setTimeout(resolve, 500));
-                        
-                    } catch (error) {
-                        console.error('❌ Error al enviar barrido individual:', error);
-                        // Continuar con el siguiente barrido incluso si hay error
-                        continue;
-                    }
+                // Enviar datos como parámetros URL para evitar problemas CORS
+                const params = new URLSearchParams();
+                for (const key in datosEnvio) {
+                    params.append(key, datosEnvio[key]);
                 }
                 
-                console.log('✅ Todos los barridos procesados');
-                return true;
+                const urlConParametros = `${SCRIPT_URL}?${params.toString()}`;
+                
+                const response = await fetch(urlConParametros, {
+                    method: 'GET', // Usar GET en lugar de POST para evitar problemas CORS
+                    mode: 'no-cors'
+                });
+                
+                console.log('✅ Barrido registrado en Google Sheets:', datosEnvio['Fecha de Barrido'], datosEnvio['Horario']);
+                
+                // Pequeña pausa entre envíos para evitar sobrecarga
+                await new Promise(resolve => setTimeout(resolve, 800));
                 
             } catch (error) {
-                console.error('❌ Error general al guardar en Google Sheets:', error);
-                throw error;
+                console.error('❌ Error al enviar barrido individual:', error);
+                // Continuar con el siguiente barrido incluso si hay error
+                continue;
+            }
+        }
+        
+        console.log('✅ Todos los barridos procesados en Google Sheets');
+        return true;
+        
+    } catch (error) {
+        console.error('❌ Error general al guardar en Google Sheets:', error);
+        // Aún así retornamos true para permitir la descarga de la constancia
+        return true;
             }
         }
         
