@@ -1626,10 +1626,13 @@
             modalHorarios.style.display = 'none';
         });
         
-        // Función para guardar registro completo
-        // Función para guardar registro completo en Google Sheets
+// Función para guardar registro completo en Google Sheets (VERSIÓN PRUEBA)
 async function guardarRegistroCompleto(datos) {
+    // ⚠️ REEMPLAZA ESTA URL CON LA DE TU APPS SCRIPT ⚠️
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwmvo4gT3Q__DROv31esOzKZ8A4-41GRFtXNYIMtsdPT1G_2Kngpawv3GsLzEcvN7Oo/exec';
+    
+    
+    console.log('📤 Enviando datos a Google Sheets...', datos);
     
     try {
         // Para cada barrido registrado, enviar individualmente
@@ -1646,6 +1649,8 @@ async function guardarRegistroCompleto(datos) {
                 confirmacion: 'SÍ'
             };
             
+            console.log('📨 Enviando:', datosEnvio);
+            
             const response = await fetch(SCRIPT_URL, {
                 method: 'POST',
                 headers: {
@@ -1655,6 +1660,7 @@ async function guardarRegistroCompleto(datos) {
             });
             
             const result = await response.json();
+            console.log('✅ Respuesta:', result);
             
             if (result.status !== 'success') {
                 throw new Error(result.message);
@@ -1664,7 +1670,7 @@ async function guardarRegistroCompleto(datos) {
         return true;
         
     } catch (error) {
-        console.error('Error al guardar en Google Sheets:', error);
+        console.error('❌ Error al guardar en Google Sheets:', error);
         throw error;
     }
 }
