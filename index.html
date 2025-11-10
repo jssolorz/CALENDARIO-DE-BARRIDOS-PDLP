@@ -405,11 +405,12 @@
             font-size: 1.2rem;
         }
         
+        /* BOTÓN UNIFICADO - REGISTRARME Y DESCARGAR CONSTANCIA */
         button.registro-btn {
             background: linear-gradient(to right, var(--teal-principal), var(--teal-oscuro));
             color: white;
             border: none;
-            padding: 16px 30px;
+            padding: 18px 30px;
             border-radius: 10px;
             font-size: 1.1rem;
             font-weight: 600;
@@ -418,11 +419,22 @@
             width: 100%;
             margin-top: 20px;
             box-shadow: 0 4px 10px rgba(0, 128, 128, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
         
         button.registro-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 15px rgba(0, 128, 128, 0.4);
+        }
+        
+        button.registro-btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
         
         .checkbox-group {
@@ -782,36 +794,22 @@
             transform: translateY(-2px);
         }
         
-        /* Nuevos estilos para el botón de descarga de constancia */
-        .descarga-constancia {
-            background: linear-gradient(to right, #28a745, #20c997);
-            color: white;
-            border: none;
-            padding: 12px 20px;
+        /* Estilos para el mensaje de éxito */
+        .mensaje-exito {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
             border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            width: 100%;
-            margin-top: 10px;
-            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: center;
+            color: #155724;
+            display: none;
         }
         
-        .descarga-constancia:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(40, 167, 69, 0.4);
-        }
-        
-        .descarga-constancia:disabled {
-            background: #cccccc;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
+        .mensaje-exito i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #28a745;
         }
         
         @media (min-width: 768px) {
@@ -927,6 +925,13 @@
             </header>
             
             <div class="form-content">
+                <!-- Mensaje de éxito después del registro -->
+                <div class="mensaje-exito" id="mensajeExito">
+                    <i class="fas fa-check-circle"></i>
+                    <h3>¡Registro Exitoso!</h3>
+                    <p>Tu registro ha sido guardado correctamente y tu constancia se ha descargado automáticamente.</p>
+                </div>
+                
                 <div class="info-cupos">
                     <h3><i class="fas fa-users"></i> Cupos Disponibles</h3>
                     <p>Cada día tiene <strong>10 cupos</strong> por horario</p>
@@ -993,11 +998,6 @@
                     </div>
                 </div>
                 
-                <!-- NUEVO: Botón de descarga de constancia para todos los asesores -->
-                <button class="descarga-constancia" id="descargarConstancia" disabled>
-                    <i class="fas fa-file-excel"></i> DESCARGAR CONSTANCIA
-                </button>
-                
                 <div class="form-group">
                     <div class="checkbox-group">
                         <input type="checkbox" id="confirmacion" name="confirmacion" required>
@@ -1005,8 +1005,11 @@
                     </div>
                 </div>
                 
+                <!-- BOTÓN UNIFICADO - REGISTRARME Y DESCARGAR CONSTANCIA -->
                 <button type="submit" class="registro-btn" id="registroBtn">
-                    <i class="fas fa-calendar-check"></i> REGISTRARME
+                    <i class="fas fa-calendar-check"></i> 
+                    <i class="fas fa-file-excel"></i>
+                    REGISTRARME Y DESCARGAR CONSTANCIA
                 </button>
                 
                 <!-- Sección de Administración (oculta por defecto) -->
@@ -1198,8 +1201,8 @@
         const cancelarReseteo = document.getElementById('cancelarReseteo');
         const confirmarReseteo = document.getElementById('confirmarReseteo');
         
-        // NUEVO: Elemento para el botón de descarga de constancia
-        const descargarConstanciaBtn = document.getElementById('descargarConstancia');
+        // NUEVO: Elemento para el mensaje de éxito
+        const mensajeExito = document.getElementById('mensajeExito');
         
         // 🔐 CONFIGURACIÓN DE SEGURIDAD - CAMBIA ESTA CONTRASEÑA
         const ADMIN_PASSWORD = "admin123"; // Cambia esta contraseña por una más segura
@@ -1580,7 +1583,7 @@
             modalHorarios.style.display = 'flex';
         }
         
-        // Actualizar resumen de registros (MODIFICADO)
+        // Actualizar resumen de registros
         function actualizarResumen() {
             const codigoAsesor = codigoAsesorInput.value.trim();
             let registros = [];
@@ -1594,8 +1597,6 @@
             
             if (registros.length === 0) {
                 listaRegistros.innerHTML = '<p style="text-align: center; color: #777; padding: 20px;">No hay barridos seleccionados</p>';
-                // Deshabilitar botón de descarga si no hay registros
-                descargarConstanciaBtn.disabled = true;
             } else {
                 registros.forEach((registro, index) => {
                     const item = document.createElement('div');
@@ -1609,9 +1610,6 @@
                     `;
                     listaRegistros.appendChild(item);
                 });
-                
-                // Habilitar botón de descarga si hay registros
-                descargarConstanciaBtn.disabled = false;
                 
                 document.querySelectorAll('.eliminar-item').forEach(btn => {
                     btn.addEventListener('click', function() {
@@ -1711,9 +1709,6 @@
             // Generar archivo y descargar
             XLSX.writeFile(wb, `Constancia_Barridos_${codigoAsesor}_${new Date().toISOString().slice(0,10)}.xlsx`);
         }
-        
-        // Evento para el botón de descarga de constancia
-        descargarConstanciaBtn.addEventListener('click', descargarConstanciaPersonal);
         
         // Evento para actualizar resumen cuando cambia el código de asesor
         codigoAsesorInput.addEventListener('input', function() {
@@ -2055,7 +2050,7 @@
             }
         }
         
-        // Evento para el botón de registro
+        // MODIFICACIÓN: Evento para el botón unificado - REGISTRARME Y DESCARGAR CONSTANCIA
         registroBtn.addEventListener('click', async function() {
             const nombre = document.getElementById('nombre').value;
             const telefono = document.getElementById('telefono').value;
@@ -2091,7 +2086,7 @@
             }
             
             // Mostrar mensaje de carga
-            registroBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> REGISTRANDO...';
+            registroBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> PROCESANDO REGISTRO...';
             registroBtn.disabled = true;
             
             try {
@@ -2111,19 +2106,62 @@
                 // También guardar localmente (backup)
                 guardarRegistroLocal(datosRegistro);
                 
-                alert(`✅ ¡Registro exitoso!\n\nTe has registrado para ${registros.length} barrido(s).\n\nLos datos han sido guardados en el sistema.`);
+                // Mostrar mensaje de éxito
+                mensajeExito.style.display = 'block';
                 
-                // Limpiar formulario
-                limpiarFormulario();
+                // Desplazar la vista hacia el mensaje de éxito
+                mensajeExito.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Cambiar texto del botón para indicar descarga
+                registroBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> DESCARGANDO CONSTANCIA...';
+                
+                // Pequeña pausa antes de descargar
+                setTimeout(() => {
+                    // Descargar automáticamente la constancia
+                    descargarConstanciaPersonal();
+                    
+                    // Restaurar botón a su estado original
+                    registroBtn.innerHTML = `
+                        <i class="fas fa-calendar-check"></i> 
+                        <i class="fas fa-file-excel"></i>
+                        REGISTRARME Y DESCARGAR CONSTANCIA
+                    `;
+                    registroBtn.disabled = false;
+                    
+                    // Limpiar formulario después de descargar
+                    setTimeout(() => {
+                        limpiarFormulario();
+                    }, 1000);
+                    
+                }, 1500);
                 
             } catch (error) {
-                alert(`✅ ¡Registro exitoso!\n\nTe has registrado para ${registros.length} barrido(s).\n\nLos datos han sido guardados en el sistema.`);
-                // Limpiar formulario
-                limpiarFormulario();
-            } finally {
-                // Restaurar botón
-                registroBtn.innerHTML = '<i class="fas fa-calendar-check"></i> REGISTRARME';
-                registroBtn.disabled = false;
+                // Aún así mostrar mensaje de éxito y descargar constancia
+                mensajeExito.style.display = 'block';
+                mensajeExito.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Cambiar texto del botón para indicar descarga
+                registroBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> DESCARGANDO CONSTANCIA...';
+                
+                // Pequeña pausa antes de descargar
+                setTimeout(() => {
+                    // Descargar automáticamente la constancia
+                    descargarConstanciaPersonal();
+                    
+                    // Restaurar botón a su estado original
+                    registroBtn.innerHTML = `
+                        <i class="fas fa-calendar-check"></i> 
+                        <i class="fas fa-file-excel"></i>
+                        REGISTRARME Y DESCARGAR CONSTANCIA
+                    `;
+                    registroBtn.disabled = false;
+                    
+                    // Limpiar formulario después de descargar
+                    setTimeout(() => {
+                        limpiarFormulario();
+                    }, 1000);
+                    
+                }, 1500);
             }
         });
 
@@ -2154,6 +2192,11 @@
             
             actualizarResumen();
             generarCalendario();
+            
+            // Ocultar mensaje de éxito después de limpiar
+            setTimeout(() => {
+                mensajeExito.style.display = 'none';
+            }, 3000);
         }
         
         // Eventos para los botones de descarga
