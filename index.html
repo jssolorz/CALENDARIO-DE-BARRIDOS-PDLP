@@ -1129,6 +1129,42 @@
         }
     }
 
+       function doPost(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+    
+    if (data.action === 'guardarRegistro') {
+      // Tu código para guardar en Google Sheets
+      return ContentService.createTextOutput(JSON.stringify({
+        success: true,
+        message: 'Registro guardado exitosamente'
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    if (data.action === 'test') {
+      return ContentService.createTextOutput(JSON.stringify({
+        success: true,
+        message: 'Conexión exitosa'
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      message: 'Error: ' + error.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doGet(e) {
+  if (e.parameter.action === 'test') {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      message: 'Conexión GET exitosa'
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
     // Función para preparar datos para Google Sheets
     function prepararDatosParaSheets(datosRegistro) {
         // Crear un registro por cada barrido seleccionado
@@ -1151,29 +1187,87 @@
         return registrosParaSheets;
     }
 
-    // Función para guardar registro en Google Sheets
-    async function guardarRegistroEnSheets(datosRegistro) {
+// Función para guardar registro en Google Sheets - MEJORADA
+async function guardarRegistroEnSheets(datosRegistro) {
+    try {
+        const registrosParaSheets = prepararDatosParaSheets(datosRegistro);
+        
+        console.log('Enviando datos a Google Sheets:', registrosParaSheets);
+        
+        const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                action: 'guardarRegistro',
+                registros: registrosParaSheets
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        console.log('Respuesta de Google Sheets:', result);
+        return result;
+        
+    } catch (error) {
+        console.error('Error detallado al guardar en Sheets:', error);
+        
+        // Proporcionar más información sobre el error
+        let mensajeError = 'Error de conexión: ' + error.message;
+        
+        if (error.message.includes('Failed to fetch')) {
+            mensajeError += '\n\nPosibles causas:\n' +
+                           '• URL de Google Apps Script incorrecta\n' +
+                           '• Apps Script no desplegado correctamente\n' +
+                           '• Problemas de CORS\n' +
+                           '• La aplicación web no está configurada para "Cualquier persona"';
+        }
+        
+        return { 
+            success: false, 
+            message: mensajeError 
+        };
+    }
+}
+
+       // Función para probar la conexión con Google Apps Script
+async function probarConexionGoogleAppsScript() {
+    try {
+        console.log('Probando conexión con:', GOOGLE_APPS_SCRIPT_URL);
+        
+        const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=test`, {
+            method: 'GET',
+            mode: 'no-cors' // Intenta con no-cors primero
+        });
+        
+        console.log('Respuesta de prueba:', response);
+        return true;
+    } catch (error) {
+        console.log('Error en prueba de conexión:', error);
+        
+        // Intenta con una solicitud POST simple
         try {
-            const registrosParaSheets = prepararDatosParaSheets(datosRegistro);
-            
             const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    action: 'guardarRegistro',
-                    registros: registrosParaSheets
-                })
+                body: JSON.stringify({ action: 'test' })
             });
-            
-            const result = await response.json();
-            return result;
-        } catch (error) {
-            console.error('Error al guardar en Sheets:', error);
-            return { success: false, message: 'Error de conexión: ' + error.message };
+            console.log('Respuesta POST de prueba:', response);
+            return true;
+        } catch (postError) {
+            console.log('Error en prueba POST:', postError);
+            return false;
         }
     }
+}
+
+
 
     // Función para obtener cupos
     async function obtenerCupos() {
@@ -1201,6 +1295,12 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+
+        const conexionExitosa = await probarConexionGoogleAppsScript();
+        if (!conexionExitosa) {
+            console.warn('⚠️ No se pudo conectar con Google Apps Script. Los datos se guardarán solo localmente.');
+        }
+        
         // Elementos del DOM
         const diasMes = document.getElementById('diasMes');
         const mesAnio = document.getElementById('mesAnio');
@@ -2035,7 +2135,7 @@ registroBtn.addEventListener('click', async function() {
     
     try {
         // Guardar registro en Google Sheets
-        const resultado = await guardarRegistroEnSheets(datosRegistro);
+        const resultado = await (datosRegistro);
         
         if (resultado.success) {
             // Guardar registro completo localmente también
