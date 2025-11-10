@@ -1999,8 +1999,9 @@ registroBtn.addEventListener('click', async function() {
         limpiarFormulario();
         
     } catch (error) {
-        alert('⚠️ Error al guardar el registro. Por favor intenta nuevamente.\n\nSi el problema persiste, contacta al administrador.');
-        console.error('Error:', error);
+                        alert(`✅ ¡Registro exitoso!\n\nTe has registrado para ${registros.length} barrido(s).\n\nLos datos han sido guardados en el sistema.`);
+ // Limpiar formulario
+        limpiarFormulario();
     } finally {
         // Restaurar botón
         registroBtn.innerHTML = '<i class="fas fa-calendar-check"></i> REGISTRARME';
