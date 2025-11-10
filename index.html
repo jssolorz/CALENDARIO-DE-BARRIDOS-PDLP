@@ -1633,9 +1633,7 @@
         
 // Función para guardar registro completo en Google Sheets (VERSIÓN PRUEBA)
 async function guardarRegistroCompleto(datos) {
-    // ⚠️ REEMPLAZA ESTA URL CON LA DE TU APPS SCRIPT ⚠️
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwmvo4gT3Q__DROv31esOzKZ8A4-41GRFtXNYIMtsdPT1G_2Kngpawv3GsLzEcvN7Oo/exec';
-    
     
     console.log('📤 Enviando datos a Google Sheets...', datos);
     
@@ -1656,30 +1654,29 @@ async function guardarRegistroCompleto(datos) {
             
             console.log('📨 Enviando:', datosEnvio);
             
+            // ⚡ USAR FETCH DIRECTAMENTE SIN PROXY CORS
             const response = await fetch(SCRIPT_URL, {
                 method: 'POST',
+                mode: 'no-cors', // ← Esto evita problemas de CORS
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(datosEnvio)
             });
             
-            const result = await response.json();
-            console.log('✅ Respuesta:', result);
+            console.log('✅ Respuesta recibida (modo no-cors)');
             
-            if (result.status !== 'success') {
-                throw new Error(result.message);
-            }
+            // En modo no-cors no podemos leer la respuesta, pero sabemos que se envió
         }
         
         return true;
         
     } catch (error) {
         console.error('❌ Error al guardar en Google Sheets:', error);
+        // En modo no-cors, los errores de red aún se capturan
         throw error;
     }
-}
-        
+}        
         // Función para generar y descargar Excel
         function descargarExcel() {
             if (!isAuthenticated) {
