@@ -1652,7 +1652,7 @@
             contadorRegistros.textContent = registros.length;
         }
         
-        // NUEVA FUNCIÓN: Descargar constancia personal
+        // NUEVA FUNCIÓN: Descargar constancia personal (CORREGIDA)
         function descargarConstanciaPersonal() {
             const codigoAsesor = codigoAsesorInput.value.trim();
             
@@ -1675,21 +1675,37 @@
             
             let nombreAsesor = "Asesor";
             let equipoAsesor = "Equipo";
+            let telefonoAsesor = "";
+            let emailAsesor = "";
             
             if (registroAsesor) {
                 nombreAsesor = registroAsesor.nombre;
                 equipoAsesor = registroAsesor.equipo;
+                telefonoAsesor = registroAsesor.telefono;
+                emailAsesor = registroAsesor.email;
             }
             
-            // Preparar datos para Excel
-            const datosExcel = registros.map(registro => ({
-                'Código Asesor': codigoAsesor,
-                'Nombre': nombreAsesor,
-                'Equipo': equipoAsesor,
-                'Fecha Barrido': registro.fechaTexto,
-                'Horario': registro.horario,
-                'Tipo Horario': registro.tipoHorario === 'manana' ? 'Mañana' : 'Tarde'
-            }));
+            // Preparar datos para Excel con las columnas correctas
+            const datosExcel = registros.map(registro => {
+                // Extraer fecha y horario del registro
+                const fechaBarrido = registro.fechaTexto;
+                const horario = registro.horario;
+                const tipoHorario = registro.tipoHorario === 'manana' ? 'Mañana' : 'Tarde';
+                
+                // Crear objeto con las columnas que coinciden con Google Sheets
+                return {
+                    'Código Asesor': codigoAsesor,
+                    'Nombre': nombreAsesor,
+                    'Teléfono': telefonoAsesor,
+                    'Email': emailAsesor,
+                    'Equipo': equipoAsesor,
+                    'Fecha Barrido': fechaBarrido,
+                    'Horario': horario,
+                    'Tipo Horario': tipoHorario,
+                    'Confirmación': 'SÍ',
+                    'Fecha de Registro': new Date().toLocaleString('es-ES')
+                };
+            });
             
             // Crear libro de Excel
             const wb = XLSX.utils.book_new();
@@ -1796,7 +1812,7 @@
                 return;
             }
             
-            // Preparar datos para Excel
+            // Preparar datos para Excel con las columnas correctas
             const datosExcel = registrosCompletos.map(registro => {
                 // Aplanar los registros de barridos
                 const barridos = registro.registros.map(barrido => ({
@@ -1805,10 +1821,11 @@
                     'Teléfono': registro.telefono,
                     'Email': registro.email,
                     'Equipo': registro.equipo,
-                    'Fecha Registro': registro.fechaRegistro,
                     'Fecha Barrido': barrido.fechaTexto,
                     'Horario': barrido.horario,
-                    'Tipo Horario': barrido.tipoHorario
+                    'Tipo Horario': barrido.tipoHorario,
+                    'Confirmación': 'SÍ',
+                    'Fecha de Registro': registro.fechaRegistro
                 }));
                 
                 return barridos;
