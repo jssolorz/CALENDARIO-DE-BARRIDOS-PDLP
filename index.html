@@ -873,7 +873,7 @@
                         <tbody>
                             <tr>
                                 <td class="sector-title">BIZ - 1</td>
-                                <td class="fecha-barrido">12 Nov</td>
+                                <td class="fecha-barrido">10 Nov</td>
                                 <td>09:00 - 12:00</td>
                                 <td>BOYACÁ</td>
                                 <td><a href="https://maps.app.goo.gl/g77pSMT7x1wTxFU3A" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
@@ -1168,8 +1168,8 @@
         // Fecha actual - Noviembre 2025
         let fechaActual = new Date(2025, 10, 1);
         
-        // Días con barridos disponibles en noviembre 2025 (10 de noviembre ELIMINADO)
-        const diasConBarridos = [12, 13, 14, 17, 18, 19, 20, 21, 24, 25, 26];
+        // Días con barridos disponibles en noviembre 2025
+        const diasConBarridos = [10, 12, 13, 14, 17, 18, 19, 20, 21, 24, 25, 26];
         const diaPremiacion = 11;
         
         // Estado de autenticación
@@ -2045,7 +2045,7 @@
             }
             
             if (!confirmacion) {
-                alert('Debes confirmar que asistirés a los barridos seleccionados');
+                alert('Debes confirmar que asistirás a los barridos seleccionados');
                 return;
             }
             
@@ -2259,7 +2259,7 @@
         // Evento para reseteo completo de cupos
         reseteoCuposCompletoBtn.addEventListener('click', function() {
             resetearTodosLosCupos();
-        }
+        });
         
         // Evento para confirmar reseteo de cupos por día
         confirmarReseteo.addEventListener('click', function() {
