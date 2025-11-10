@@ -1171,6 +1171,7 @@
         const nombreInput = document.getElementById('nombre');
         const telefonoInput = document.getElementById('telefono');
         const telefonoError = document.getElementById('telefonoError');
+        const emailInput = document.getElementById('email');
         const equipoSelect = document.getElementById('equipo');
         const descargarResumenBtn = document.getElementById('descargarResumen');
         const eliminarRegistroBtn = document.getElementById('eliminarRegistro');
@@ -1213,6 +1214,15 @@
         
         // Estado de autenticación
         let isAuthenticated = false;
+        
+        // Datos temporales del asesor actual
+        let datosAsesorActual = {
+            codigoAsesor: '',
+            nombre: '',
+            telefono: '',
+            email: '',
+            equipo: ''
+        };
         
         // Verificar si hay una sesión activa
         function checkAuthStatus() {
@@ -1311,6 +1321,39 @@
                 this.classList.add('input-error');
                 telefonoError.style.display = 'block';
             }
+        });
+        
+        // Actualizar datos del asesor actual
+        function actualizarDatosAsesor() {
+            datosAsesorActual = {
+                codigoAsesor: codigoAsesorInput.value.trim(),
+                nombre: nombreInput.value,
+                telefono: telefonoInput.value,
+                email: emailInput.value,
+                equipo: equipoSelect.value
+            };
+        }
+        
+        // Eventos para actualizar datos del asesor
+        codigoAsesorInput.addEventListener('input', function() {
+            actualizarDatosAsesor();
+            actualizarResumen();
+        });
+        
+        nombreInput.addEventListener('input', function() {
+            actualizarDatosAsesor();
+        });
+        
+        telefonoInput.addEventListener('input', function() {
+            actualizarDatosAsesor();
+        });
+        
+        emailInput.addEventListener('input', function() {
+            actualizarDatosAsesor();
+        });
+        
+        equipoSelect.addEventListener('change', function() {
+            actualizarDatosAsesor();
         });
         
         // Verificar si es noviembre 2025
@@ -1580,7 +1623,7 @@
             modalHorarios.style.display = 'flex';
         }
         
-        // Actualizar resumen de registros (MODIFICADO)
+        // Actualizar resumen de registros
         function actualizarResumen() {
             const codigoAsesor = codigoAsesorInput.value.trim();
             let registros = [];
@@ -1652,7 +1695,7 @@
             contadorRegistros.textContent = registros.length;
         }
         
-        // NUEVA FUNCIÓN: Descargar constancia personal (CORREGIDA)
+        // FUNCIÓN CORREGIDA: Descargar constancia personal
         function descargarConstanciaPersonal() {
             const codigoAsesor = codigoAsesorInput.value.trim();
             
@@ -1669,21 +1712,11 @@
                 return;
             }
             
-            // Obtener información del asesor
-            const registrosCompletos = JSON.parse(localStorage.getItem('registrosCompletos2025') || '[]');
-            const registroAsesor = registrosCompletos.find(reg => reg.codigoAsesor === codigoAsesor);
-            
-            let nombreAsesor = "Asesor";
-            let equipoAsesor = "Equipo";
-            let telefonoAsesor = "";
-            let emailAsesor = "";
-            
-            if (registroAsesor) {
-                nombreAsesor = registroAsesor.nombre;
-                equipoAsesor = registroAsesor.equipo;
-                telefonoAsesor = registroAsesor.telefono;
-                emailAsesor = registroAsesor.email;
-            }
+            // Obtener información del asesor desde los datos actuales del formulario
+            const nombreAsesor = datosAsesorActual.nombre || "Asesor";
+            const telefonoAsesor = datosAsesorActual.telefono || "";
+            const emailAsesor = datosAsesorActual.email || "";
+            const equipoAsesor = datosAsesorActual.equipo || "Equipo";
             
             // Preparar datos para Excel con las columnas correctas
             const datosExcel = registros.map(registro => {
@@ -1694,16 +1727,16 @@
                 
                 // Crear objeto con las columnas que coinciden con Google Sheets
                 return {
-                    'Código Asesor': codigoAsesor,
+                    'FechaRegistro': new Date().toLocaleString('es-ES'),
+                    'CodigoAsesor': codigoAsesor,
                     'Nombre': nombreAsesor,
-                    'Teléfono': telefonoAsesor,
+                    'Telefono': telefonoAsesor,
                     'Email': emailAsesor,
                     'Equipo': equipoAsesor,
-                    'Fecha Barrido': fechaBarrido,
+                    'FechaBarrido': fechaBarrido,
                     'Horario': horario,
-                    'Tipo Horario': tipoHorario,
-                    'Confirmación': 'SÍ',
-                    'Fecha de Registro': new Date().toLocaleString('es-ES')
+                    'TipoHorario': tipoHorario,
+                    'Confirmacion': 'SÍ'
                 };
             });
             
@@ -1720,11 +1753,6 @@
         
         // Evento para el botón de descarga de constancia
         descargarConstanciaBtn.addEventListener('click', descargarConstanciaPersonal);
-        
-        // Evento para actualizar resumen cuando cambia el código de asesor
-        codigoAsesorInput.addEventListener('input', function() {
-            actualizarResumen();
-        });
         
         // Eventos para los botones de navegación del calendario
         prevMesBtn.addEventListener('click', function() {
@@ -1816,16 +1844,16 @@
             const datosExcel = registrosCompletos.map(registro => {
                 // Aplanar los registros de barridos
                 const barridos = registro.registros.map(barrido => ({
-                    'Código Asesor': registro.codigoAsesor,
+                    'FechaRegistro': registro.fechaRegistro,
+                    'CodigoAsesor': registro.codigoAsesor,
                     'Nombre': registro.nombre,
-                    'Teléfono': registro.telefono,
+                    'Telefono': registro.telefono,
                     'Email': registro.email,
                     'Equipo': registro.equipo,
-                    'Fecha Barrido': barrido.fechaTexto,
+                    'FechaBarrido': barrido.fechaTexto,
                     'Horario': barrido.horario,
-                    'Tipo Horario': barrido.tipoHorario,
-                    'Confirmación': 'SÍ',
-                    'Fecha de Registro': registro.fechaRegistro
+                    'TipoHorario': barrido.tipoHorario,
+                    'Confirmacion': 'SÍ'
                 }));
                 
                 return barridos;
@@ -2156,6 +2184,15 @@
             const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
             delete registrosAsesores[codigoAsesorInput.value.trim()];
             localStorage.setItem('registrosAsesores2025', JSON.stringify(registrosAsesores));
+            
+            // Limpiar datos del asesor actual
+            datosAsesorActual = {
+                codigoAsesor: '',
+                nombre: '',
+                telefono: '',
+                email: '',
+                equipo: ''
+            };
             
             actualizarResumen();
             generarCalendario();
