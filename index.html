@@ -1112,83 +1112,94 @@
             </div>
         </div>
     </div>
+   <script>
+    // Configuración - REEMPLAZA CON TU URL DE APPS SCRIPT
+    const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzi_F4o3NvxgoF3QmOb94HN-Z0Emnk9a0YRILtfY3Ne78ouyo3Z0qvsy-KbI4oWZvYn/exec";
 
-    <script>
-	// Configuración - REEMPLAZA CON TU URL DE APPS SCRIPT
-const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxxfq-KIHplu_MoBKPAui_PpmNde4fE8Cm9jAf6C_w2LpKcH9wrvhCd8k0fp21tO-tE/exec";
-
-// Función para probar la conexión
-async function probarConexion() {
-    try {
-        const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=test`);
-        const result = await response.json();
-        console.log('Conexión exitosa:', result);
-        return true;
-    } catch (error) {
-        console.error('Error de conexión:', error);
-        return false;
+    // Función para probar la conexión
+    async function probarConexion() {
+        try {
+            const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=test`);
+            const result = await response.json();
+            console.log('Conexión exitosa:', result);
+            return true;
+        } catch (error) {
+            console.error('Error de conexión:', error);
+            return false;
+        }
     }
-}
 
-// Función para guardar registro
-async function guardarRegistroEnSheets(datos) {
-    try {
-        const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                action: 'guardarRegistro',
-                ...datos
-            })
+    // Función para preparar datos para Google Sheets
+    function prepararDatosParaSheets(datosRegistro) {
+        // Crear un registro por cada barrido seleccionado
+        const registrosParaSheets = datosRegistro.registros.map(barrido => {
+            return {
+                codigoAsesor: datosRegistro.codigoAsesor,
+                nombre: datosRegistro.nombre,
+                telefono: datosRegistro.telefono,
+                email: datosRegistro.email,
+                equipo: datosRegistro.equipo,
+                fechaBarrido: barrido.fecha,
+                fechaBarridoTexto: barrido.fechaTexto,
+                horario: barrido.horario,
+                tipoHorario: barrido.tipoHorario,
+                fechaRegistro: new Date().toLocaleString('es-ES'),
+                timestamp: new Date().toISOString()
+            };
         });
         
-        const result = await response.json();
-        return result;
-    } catch (error) {
-        console.error('Error al guardar:', error);
-        return { success: false, message: 'Error de conexión' };
+        return registrosParaSheets;
     }
-}
 
-// Función para obtener cupos
-async function obtenerCupos() {
-    try {
-        const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=getCupos`);
-        const result = await response.json();
-        return result;
-    } catch (error) {
-        console.error('Error al obtener cupos:', error);
-        // Cupos por defecto
-        const cuposPorDefecto = {};
-        const diasConBarridos = [10, 12, 13, 14, 17, 18, 19, 20, 21, 24, 25, 26];
-        diasConBarridos.forEach(dia => {
-            const fechaStr = `2025-11-${dia.toString().padStart(2, '0')}`;
-            cuposPorDefecto[fechaStr] = { manana: 10, tarde: 10 };
-        });
-        return cuposPorDefecto;
+    // Función para guardar registro en Google Sheets
+    async function guardarRegistroEnSheets(datosRegistro) {
+        try {
+            const registrosParaSheets = prepararDatosParaSheets(datosRegistro);
+            
+            const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'guardarRegistro',
+                    registros: registrosParaSheets
+                })
+            });
+            
+            const result = await response.json();
+            return result;
+        } catch (error) {
+            console.error('Error al guardar en Sheets:', error);
+            return { success: false, message: 'Error de conexión: ' + error.message };
+        }
     }
-}
 
-// Modificar la función obtenerCuposDia para usar la API
-async function obtenerCuposDia(fechaStr) {
-    const cupos = await obtenerCupos();
-    return cupos[fechaStr] || { manana: 10, tarde: 10 };
-}
-
-// En el evento DOMContentLoaded, agregar:
-document.addEventListener('DOMContentLoaded', async function() {
-    // ... código existente ...
-    
-    // Probar conexión al cargar
-    const conexionExitosa = await probarConexion();
-    if (!conexionExitosa) {
-        console.warn('No se pudo conectar con el servidor. Usando modo local.');
+    // Función para obtener cupos
+    async function obtenerCupos() {
+        try {
+            const response = await fetch(`${GOOGLE_APPS_SCRIPT_URL}?action=getCupos`);
+            const result = await response.json();
+            return result;
+        } catch (error) {
+            console.error('Error al obtener cupos:', error);
+            // Cupos por defecto
+            const cuposPorDefecto = {};
+            const diasConBarridos = [10, 12, 13, 14, 17, 18, 19, 20, 21, 24, 25, 26];
+            diasConBarridos.forEach(dia => {
+                const fechaStr = `2025-11-${dia.toString().padStart(2, '0')}`;
+                cuposPorDefecto[fechaStr] = { manana: 10, tarde: 10 };
+            });
+            return cuposPorDefecto;
+        }
     }
-    
-    // ... resto del código ...
-});
+
+    // Modificar la función obtenerCuposDia para usar la API
+    async function obtenerCuposDia(fechaStr) {
+        const cupos = await obtenerCupos();
+        return cupos[fechaStr] || { manana: 10, tarde: 10 };
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         // Elementos del DOM
         const diasMes = document.getElementById('diasMes');
@@ -1973,9 +1984,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                 alert('✅ Todos los cupos han sido restablecidos correctamente');
             }
         }
-        
-        // Evento para el botón de registro
-        registroBtn.addEventListener('click', function() {
+
+        // EVENTO PARA EL BOTÓN DE REGISTRO MODIFICADO
+        registroBtn.addEventListener('click', async function() {
             const nombre = document.getElementById('nombre').value;
             const telefono = document.getElementById('telefono').value;
             const email = document.getElementById('email').value;
@@ -2022,38 +2033,49 @@ document.addEventListener('DOMContentLoaded', async function() {
                     registros: registros
                 };
                 
-                // Guardar registro completo
-                guardarRegistroCompleto(datosRegistro);
+                // Guardar registro en Google Sheets
+                const resultado = await guardarRegistroEnSheets(datosRegistro);
                 
-                // Restaurar botón
-                registroBtn.innerHTML = '<i class="fas fa-calendar-check"></i> REGISTRARME';
-                registroBtn.disabled = false;
-                
-                alert(`✅ ¡Registro exitoso!\n\nTe has registrado para ${registros.length} barrido(s).\n\nLos datos han sido guardados en el sistema.`);
-                
-                // Limpiar formulario
-                document.getElementById('nombre').value = '';
-                document.getElementById('telefono').value = '';
-                document.getElementById('email').value = '';
-                codigoAsesorInput.value = '';
-                equipoSelect.value = '';
-                document.getElementById('confirmacion').checked = false;
-                
-                // Limpiar registros locales
-                const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
-                delete registrosAsesores[codigoAsesor];
-                localStorage.setItem('registrosAsesores2025', JSON.stringify(registrosAsesores));
-                
-                actualizarResumen();
-                generarCalendario();
+                if (resultado.success) {
+                    // Guardar registro completo localmente también
+                    guardarRegistroCompleto(datosRegistro);
+                    
+                    alert(`✅ ¡Registro exitoso!\n\nTe has registrado para ${registros.length} barrido(s).\n\nLos datos han sido guardados en el sistema.`);
+                    
+                    // Limpiar formulario
+                    document.getElementById('nombre').value = '';
+                    document.getElementById('telefono').value = '';
+                    document.getElementById('email').value = '';
+                    codigoAsesorInput.value = '';
+                    equipoSelect.value = '';
+                    document.getElementById('confirmacion').checked = false;
+                    
+                    // Limpiar registros locales
+                    const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
+                    delete registrosAsesores[codigoAsesor];
+                    localStorage.setItem('registrosAsesores2025', JSON.stringify(registrosAsesores));
+                    
+                    actualizarResumen();
+                    generarCalendario();
+                    
+                } else {
+                    throw new Error(resultado.message || 'Error al guardar en Google Sheets');
+                }
                 
             } catch (error) {
-                // Restaurar botón en caso de error
+                console.error('Error al guardar registro:', error);
+                
+                // Intentar guardar localmente como respaldo
+                try {
+                    guardarRegistroCompleto(datosRegistro);
+                    alert(`⚠️ Se guardó localmente pero hubo un problema con el servidor.\n\nTe has registrado para ${registros.length} barrido(s).\n\nError: ${error.message}`);
+                } catch (backupError) {
+                    alert('❌ Error crítico al guardar el registro. Por favor contacta al administrador.');
+                }
+            } finally {
+                // Restaurar botón siempre
                 registroBtn.innerHTML = '<i class="fas fa-calendar-check"></i> REGISTRARME';
                 registroBtn.disabled = false;
-                
-                alert('⚠️ Error al guardar el registro. Por favor intenta nuevamente.\n\nSi el problema persiste, contacta al administrador.');
-                console.error('Error:', error);
             }
         });
         
@@ -2270,6 +2292,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         actualizarResumen();
         checkAuthStatus(); // Verificar estado de autenticación al cargar
     });
-    </script>
+</script>
 </body>
 </html>
