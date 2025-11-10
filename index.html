@@ -1129,42 +1129,7 @@
         }
     }
 
-       function doPost(e) {
-  try {
-    const data = JSON.parse(e.postData.contents);
     
-    if (data.action === 'guardarRegistro') {
-      // Tu código para guardar en Google Sheets
-      return ContentService.createTextOutput(JSON.stringify({
-        success: true,
-        message: 'Registro guardado exitosamente'
-      })).setMimeType(ContentService.MimeType.JSON);
-    }
-    
-    if (data.action === 'test') {
-      return ContentService.createTextOutput(JSON.stringify({
-        success: true,
-        message: 'Conexión exitosa'
-      })).setMimeType(ContentService.MimeType.JSON);
-    }
-    
-  } catch (error) {
-    return ContentService.createTextOutput(JSON.stringify({
-      success: false,
-      message: 'Error: ' + error.toString()
-    })).setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-function doGet(e) {
-  if (e.parameter.action === 'test') {
-    return ContentService.createTextOutput(JSON.stringify({
-      success: true,
-      message: 'Conexión GET exitosa'
-    })).setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
     // Función para preparar datos para Google Sheets
     function prepararDatosParaSheets(datosRegistro) {
         // Crear un registro por cada barrido seleccionado
@@ -2014,6 +1979,42 @@ async function probarConexionGoogleAppsScript() {
                 }
             }
         }
+
+ function doPost(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+    
+    if (data.action === 'guardarRegistro') {
+      // Tu código para guardar en Google Sheets
+      return ContentService.createTextOutput(JSON.stringify({
+        success: true,
+        message: 'Registro guardado exitosamente'
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    if (data.action === 'test') {
+      return ContentService.createTextOutput(JSON.stringify({
+        success: true,
+        message: 'Conexión exitosa'
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      message: 'Error: ' + error.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doGet(e) {
+  if (e.parameter.action === 'test') {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: true,
+      message: 'Conexión GET exitosa'
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
         
         // Función para resetear cupos de un día específico
         function resetearCuposDia(dia) {
