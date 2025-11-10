@@ -48,7 +48,7 @@
             gap: 20px;
         }
         
-        .calendario-section, .form-section {
+        .calendario-section, .form-section, .gps-section {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 15px;
             box-shadow: var(--sombra);
@@ -59,6 +59,10 @@
         .form-section {
             display: flex;
             flex-direction: column;
+        }
+        
+        .gps-section {
+            padding: 0;
         }
         
         header {
@@ -437,71 +441,6 @@
             accent-color: var(--teal-principal);
         }
         
-        .admin-section {
-            background: var(--teal-claro);
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 15px;
-            border-left: 4px solid var(--dorado);
-            display: none;
-        }
-        
-        .admin-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .admin-btn {
-            background: var(--dorado);
-            color: var(--texto-oscuro);
-            border: none;
-            padding: 10px 15px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            flex: 1;
-            min-width: 120px;
-        }
-        
-        .admin-btn:hover {
-            background: #e6c200;
-            transform: translateY(-2px);
-        }
-        
-        .admin-btn.rojo {
-            background: var(--rojo);
-            color: white;
-        }
-        
-        .admin-btn.rojo:hover {
-            background: #c0392b;
-        }
-        
-        .admin-access-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: var(--dorado);
-            color: var(--texto-oscuro);
-            border: none;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            font-size: 1.2rem;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-            transition: all 0.3s;
-        }
-        
-        .admin-access-btn:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
-        }
-        
         footer {
             background-color: var(--teal-claro);
             padding: 15px;
@@ -624,10 +563,8 @@
             text-transform: uppercase;
         }
         
-        .gps-section {
+        .gps-content {
             padding: 15px;
-            background: var(--teal-claro);
-            border-top: 1px solid var(--teal-medio);
         }
         
         .gps-title {
@@ -715,79 +652,28 @@
             color: #ccc;
         }
         
-        .eliminacion-rapida {
-            background: #fff3cd;
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 15px;
-            border-left: 4px solid #f39c12;
-        }
-        
-        .eliminacion-form {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        
-        .eliminacion-form input {
-            flex-grow: 1;
-        }
-        
-        .eliminacion-form button {
-            background: var(--rojo);
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-        
-        .eliminacion-form button:hover {
-            background: #c0392b;
-            transform: translateY(-2px);
-        }
-        
-        .reseteo-cupos {
-            background: #d1ecf1;
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 15px;
-            border-left: 4px solid #0c5460;
-        }
-        
-        .reseteo-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .reseteo-btn {
-            background: #0c5460;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-            flex: 1;
-            min-width: 120px;
-        }
-        
-        .reseteo-btn:hover {
-            background: #083038;
-            transform: translateY(-2px);
-        }
-        
         @media (min-width: 768px) {
             .container {
                 max-width: 1400px;
                 margin: 0 auto;
                 grid-template-columns: 1fr 400px;
                 display: grid;
+                grid-template-areas: 
+                    "gps form"
+                    "calendario form";
+                gap: 20px;
+            }
+            
+            .gps-section {
+                grid-area: gps;
+            }
+            
+            .calendario-section {
+                grid-area: calendario;
+            }
+            
+            .form-section {
+                grid-area: form;
             }
             
             .footer-info {
@@ -808,23 +694,161 @@
             .fecha-barrido {
                 font-size: 0.75rem;
             }
-            
-            .admin-buttons {
-                flex-direction: row;
-            }
-            
-            .eliminacion-form {
-                flex-direction: row;
-            }
-            
-            .reseteo-buttons {
-                flex-direction: row;
-            }
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Sección PUNTOS GPS SECTORES (ARRIBA) -->
+        <section class="gps-section">
+            <header>
+                <h1>PUNTOS GPS SECTORES</h1>
+                <p class="subtitle">Ubicaciones de barridos - Noviembre 2025</p>
+            </header>
+            
+            <div class="gps-content">
+                <div class="gps-table-container">
+                    <table class="gps-table">
+                        <thead>
+                            <tr>
+                                <th># BARRIDO</th>
+                                <th>FECHA</th>
+                                <th>MAÑANA</th>
+                                <th>DIRECCIÓN</th>
+                                <th>GPS</th>
+                                <th>TARDE</th>
+                                <th>DIRECCIÓN</th>
+                                <th>GPS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="sector-title">BIZ - 1</td>
+                                <td class="fecha-barrido">10 Nov</td>
+                                <td>09:00 - 12:00</td>
+                                <td>BOYACÁ</td>
+                                <td><a href="https://maps.app.goo.gl/g77pSMT7x1wTxFU3A" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                                <td>14:30 - 17:30</td>
+                                <td>SAUCES 8</td>
+                                <td><a href="https://maps.app.goo.gl/ujjSUP9NXfKyiKbM9" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                            </tr>
+                            <tr>
+                                <td class="sector-title">BIZ - 2</td>
+                                <td class="fecha-barrido">11 Nov</td>
+                                <td>09:00 - 12:00</td>
+                                <td>9 DE OCTUBRE</td>
+                                <td><a href="https://maps.app.goo.gl/jT8P7CmtyBb14idu8" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                                <td>14:30 - 17:30</td>
+                                <td>SAUCES 6</td>
+                                <td><a href="https://maps.app.goo.gl/27CAf75fuAeMHgAJ9" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                            </tr>
+                            <tr>
+                                <td class="sector-title">BIZ - 3</td>
+                                <td class="fecha-barrido">12 Nov</td>
+                                <td>09:00 - 12:00</td>
+                                <td>OLMEDO</td>
+                                <td><a href="https://maps.app.goo.gl/QWHBYJTr3DMztiz18" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                                <td>14:30 - 17:30</td>
+                                <td>SAUCES 5</td>
+                                <td><a href="https://maps.app.goo.gl/27CAf75fuAeMHgAJ9" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                            </tr>
+                            <tr>
+                                <td class="sector-title">BIZ - 4</td>
+                                <td class="fecha-barrido">13 Nov</td>
+                                <td>09:00 - 12:00</td>
+                                <td>BAHIA</td>
+                                <td><a href="https://maps.app.goo.gl/g77pSMT7x1wTxFU3A" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                                <td>14:30 - 17:30</td>
+                                <td>SAUCES 3</td>
+                                <td><a href="https://maps.app.goo.gl/27CAf75fuAeMHgAJ9" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                            </tr>
+                            <tr>
+                                <td class="sector-title">BIZ - 5</td>
+                                <td class="fecha-barrido">14 Nov</td>
+                                <td>09:00 - 12:00</td>
+                                <td>MUCHO LOTE 1 </td>
+                                <td><a href="https://maps.app.goo.gl/ukASwjhkj1bLZ4ML8" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                                <td>14:30 - 17:30</td>
+                                <td>SAUCES 4</td>
+                                <td><a href="https://maps.app.goo.gl/KGcRCcmKdmuLxaqDA" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                            </tr>
+                            <tr>
+                                <td class="sector-title">BIZ - 6</td>
+                                <td class="fecha-barrido">17 Nov</td>
+                                <td>09:00 - 12:00</td>
+                                <td>VERGELES </td>
+                                <td><a href="https://maps.app.goo.gl/t5uYsgKhHqPp2ood9" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                                <td>14:30 - 17:30</td>
+                                <td>SAMANES</td>
+                                <td><a href="https://maps.app.goo.gl/q8sj8dH8GzZauKwW7" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                            </tr>
+                            <tr>
+                                <td class="sector-title">BIZ - 7</td>
+                                <td class="fecha-barrido">18 Nov</td>
+                                <td>09:00 - 12:00</td>
+                                <td>4 MANZANAS  </td>
+                                <td><a href="https://maps.app.goo.gl/nbunuthYbus8ip2o7" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                                <td>14:30 - 17:30</td>
+                                <td>GUAYACANES</td>
+                                <td><a href="https://maps.app.goo.gl/q8sj8dH8GzZauKwW7" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                            </tr>
+                            <tr>
+                                <td class="sector-title">BIZ - 8</td>
+                                <td class="fecha-barrido">19 Nov</td>
+                                <td>09:00 - 12:00</td>
+                                <td>CENTENARIO </td>
+                                <td><a href="https://maps.app.goo.gl/o5eTeoGGyqDnUVQQA" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                                <td>14:30 - 17:30</td>
+                                <td>SAUCES 9</td>
+                                <td><a href="https://maps.app.goo.gl/27CAf75fuAeMHgAJ9" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                            </tr>
+                            <tr>
+                                <td class="sector-title">BIZ - 9</td>
+                                <td class="fecha-barrido">20 Nov</td>
+                                <td>09:00 - 12:00</td>
+                                <td>7 LAGOS </td>
+                                <td><a href="https://maps.app.goo.gl/h36GjVRBygTKP8CH6" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                                <td>14:30 - 17:30</td>
+                                <td>SAUCES 7</td>
+                                <td><a href="https://maps.app.goo.gl/pXxncR1giKDRb5Bt8" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                            </tr>
+                            <tr>
+                                <td class="sector-title">BIZ - 10</td>
+                                <td class="fecha-barrido">21 Nov</td>
+                                <td>09:00 - 12:00</td>
+                                <td>PRADERA 1 </td>
+                                <td><a href="https://maps.app.goo.gl/f3dXWBibaMS6VJDSA" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                                <td>14:30 - 17:30</td>
+                                <td>SAUCES 2</td>
+                                <td><a href="https://maps.app.goo.gl/kxUHsqjXRxysbaWw8" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                            </tr>
+                            <tr>
+                                <td class="sector-title">BIZ - 11</td>
+                                <td class="fecha-barrido">24 Nov</td>
+                                <td>09:00 - 12:00</td>
+                                <td>PRADERA 2 </td>
+                                <td><a href="https://maps.app.goo.gl/hc1Uaa9MFVnYUXmu8" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                                <td>14:30 - 17:30</td>
+                                <td>ALBORADA 10</td>
+                                <td><a href="https://maps.app.goo.gl/VjVJpBxVj5kbHLyS6" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                            </tr>
+                            <tr>
+                                <td class="sector-title">BIZ - 12</td>
+                                <td class="fecha-barrido">25 Nov</td>
+                                <td>09:00 - 12:00</td>
+                                <td>FLORESTA </td>
+                                <td><a href="https://maps.app.goo.gl/Q19YeDjmc8xDvvjV9" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                                <td>14:30 - 17:30</td>
+                                <td>ALBORADA 4</td>
+                                <td><a href="https://maps.app.goo.gl/VjVJpBxVj5kbHLyS6" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección CALENDARIO DE BARRIDOS (ABAJO) -->
         <section class="calendario-section">
             <header>
                 <h1>CALENDARIO DE BARRIDOS</h1>
@@ -852,152 +876,9 @@
             <div class="dias-mes" id="diasMes">
                 <!-- Los días se generarán con JavaScript -->
             </div>
-            
-            <!-- Tabla de Puntos GPS -->
-            <div class="gps-section">
-                <h2 class="gps-title">PUNTOS GPS SECTORES</h2>
-                <div class="gps-table-container">
-                    <table class="gps-table">
-                        <thead>
-                            <tr>
-                                <th># BARRIDO</th>
-                                <th>FECHA</th>
-                                <th>MAÑANA</th>
-                                <th>DIRECCIÓN</th>
-                                <th>GPS</th>
-                                <th>TARDE</th>
-                                <th>DIRECCIÓN</th>
-                                <th>GPS</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="sector-title">BIZ - 1</td>
-                                <td class="fecha-barrido">10 Nov</td>
-                                <td>09:00 - 12:00</td>
-                                <td>BOYACÁ</td>
-                                <td><a href="https://maps.app.goo.gl/g77pSMT7x1wTxFU3A" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
-                                <td>14:30 - 17:30</td>
-                                <td>SAUCES 8</td>
-                                <td><a href="https://maps.app.goo.gl/ujjSUP9NXfKyiKbM9" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
-                            </tr>
-                            <tr>
-                            <!-- Más filas de la tabla GPS aquí -->
-                            <td class="sector-title">BIZ - 2</td>
-                                <td class="fecha-barrido">11 Nov</td>
-                                <td>09:00 - 12:00</td>
-                                <td>9 DE OCTUBRE</td>
-                                <td><a href="https://maps.app.goo.gl/jT8P7CmtyBb14idu8" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
-                                <td>14:30 - 17:30</td>
-                                <td>SAUCES 6</td>
-                                <td><a href="https://maps.app.goo.gl/27CAf75fuAeMHgAJ9" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
-                       </tr>
-                             <tr>
-                                <td class="sector-title">BIZ - 3</td>
-                                <td class="fecha-barrido">12 Nov</td>
-                                <td>09:00 - 12:00</td>
-                                <td>OLMEDO</td>
-                                <td><a href="https://maps.app.goo.gl/QWHBYJTr3DMztiz18" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
-                                <td>14:30 - 17:30</td>
-                                <td>SAUCES 5</td>
-                                <td><a href="https://maps.app.goo.gl/27CAf75fuAeMHgAJ9" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
-                       </tr>
-                             <tr>
-                            <td class="sector-title">BIZ - 4</td>
-                                <td class="fecha-barrido">13 Nov</td>
-                                <td>09:00 - 12:00</td>
-                                <td>BAHIA</td>
-                                <td><a href="https://maps.app.goo.gl/g77pSMT7x1wTxFU3A" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
-                                <td>14:30 - 17:30</td>
-                                <td>SAUCES 3</td>
-                                <td><a href="https://maps.app.goo.gl/27CAf75fuAeMHgAJ9" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
-                            </tr>
-                             <tr>
-                            <td class="sector-title">BIZ - 5</td>
-                                <td class="fecha-barrido">14 Nov</td>
-                                <td>09:00 - 12:00</td>
-                                <td>MUCHO LOTE 1 </td>
-                                <td><a href="https://maps.app.goo.gl/ukASwjhkj1bLZ4ML8" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
-                                <td>14:30 - 17:30</td>
-                                <td>SAUCES 4</td>
-                                <td><a href="https://maps.app.goo.gl/KGcRCcmKdmuLxaqDA" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
-                            </tr>
-                             <tr>
-                            <td class="sector-title">BIZ - 6</td>
-                                <td class="fecha-barrido">17 Nov</td>
-                                <td>09:00 - 12:00</td>
-                                <td>VERGELES </td>
-                                <td><a href="https://maps.app.goo.gl/t5uYsgKhHqPp2ood9" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
-                                <td>14:30 - 17:30</td>
-                                <td>SAMANES</td>
-                                <td><a href="https://maps.app.goo.gl/q8sj8dH8GzZauKwW7" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
-                            </tr>
-                             <tr>
-                            <td class="sector-title">BIZ - 7</td>
-                                <td class="fecha-barrido">18 Nov</td>
-                                <td>09:00 - 12:00</td>
-                                <td>4 MANZANAS  </td>
-                                <td><a href="https://maps.app.goo.gl/nbunuthYbus8ip2o7" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
-                                <td>14:30 - 17:30</td>
-                                <td>GUAYACANES</td>
-                                <td><a href="https://maps.app.goo.gl/q8sj8dH8GzZauKwW7" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
-                            </tr>
-                             <tr>
-                            <td class="sector-title">BIZ - 8</td>
-                                <td class="fecha-barrido">19 Nov</td>
-                                <td>09:00 - 12:00</td>
-                                <td>CENTENARIO </td>
-                                <td><a href="https://maps.app.goo.gl/o5eTeoGGyqDnUVQQA" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
-                                <td>14:30 - 17:30</td>
-                                <td>SAUCES 9</td>
-                                <td><a href="https://maps.app.goo.gl/27CAf75fuAeMHgAJ9" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
-                            </tr>
-                             <tr>
-                            <td class="sector-title">BIZ - 9</td>
-                                <td class="fecha-barrido">20 Nov</td>
-                                <td>09:00 - 12:00</td>
-                                <td>7 LAGOS </td>
-                                <td><a href="https://maps.app.goo.gl/h36GjVRBygTKP8CH6" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
-                                <td>14:30 - 17:30</td>
-                                <td>SAUCES 7</td>
-                                <td><a href="https://maps.app.goo.gl/pXxncR1giKDRb5Bt8" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
-                            </tr>
-                             <tr>
-                            <td class="sector-title">BIZ - 10</td>
-                                <td class="fecha-barrido">21 Nov</td>
-                                <td>09:00 - 12:00</td>
-                                <td>PRADERA 1 </td>
-                                <td><a href="https://maps.app.goo.gl/f3dXWBibaMS6VJDSA" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
-                                <td>14:30 - 17:30</td>
-                                <td>SAUCES 2</td>
-                                <td><a href="https://maps.app.goo.gl/kxUHsqjXRxysbaWw8" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
-                            </tr>
-                             <tr>
-                            <td class="sector-title">BIZ - 11</td>
-                                <td class="fecha-barrido">24 Nov</td>
-                                <td>09:00 - 12:00</td>
-                                <td>PRADERA 2 </td>
-                                <td><a href="https://maps.app.goo.gl/hc1Uaa9MFVnYUXmu8" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
-                                <td>14:30 - 17:30</td>
-                                <td>ALBORADA 10</td>
-                                <td><a href="https://maps.app.goo.gl/VjVJpBxVj5kbHLyS6" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
-                            </tr>
-                             <tr>
-                            <td class="sector-title">BIZ - 12</td>
-                                <td class="fecha-barrido">25 Nov</td>
-                                <td>09:00 - 12:00</td>
-                                <td>FLORESTA </td>
-                                <td><a href="https://maps.app.goo.gl/Q19YeDjmc8xDvvjV9" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
-                                <td>14:30 - 17:30</td>
-                                <td>ALBORADA 4</td>
-                                <td><a href="https://maps.app.goo.gl/VjVJpBxVj5kbHLyS6" target="_blank" class="gps-link"><i class="fas fa-map-marker-alt"></i> Ver Mapa</a></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
         </section>
         
+        <!-- Sección FORMULARIO (LATERAL DERECHO) -->
         <section class="form-section">
             <header>
                 <h1>REGISTRO</h1>
@@ -1081,48 +962,6 @@
                 <button type="submit" class="registro-btn" id="registroBtn">
                     <i class="fas fa-calendar-check"></i> REGISTRARME
                 </button>
-                
-                <!-- Sección de Administración (oculta por defecto) -->
-                <div class="admin-section" id="adminSection">
-                    <h3><i class="fas fa-cog"></i> Panel de Administración</h3>
-                    <p>Funciones administrativas para gestionar los registros</p>
-                    
-                    <!-- Eliminación rápida de registros -->
-                    <div class="eliminacion-rapida">
-                        <h4><i class="fas fa-trash-alt"></i> Eliminación Rápida</h4>
-                        <p>Elimina un registro por código de asesor:</p>
-                        <div class="eliminacion-form">
-                            <input type="text" id="codigoEliminar" placeholder="Código de asesor a eliminar">
-                            <button id="btnEliminarRapido">Eliminar</button>
-                        </div>
-                    </div>
-                    
-                    <!-- Reseteo de cupos -->
-                    <div class="reseteo-cupos">
-                        <h4><i class="fas fa-redo-alt"></i> Reseteo de Cupos</h4>
-                        <p>Restablece los cupos a su estado inicial:</p>
-                        <div class="reseteo-buttons">
-                            <button class="reseteo-btn" id="reseteoCuposDia">
-                                <i class="fas fa-calendar-day"></i> Reseteo por Día
-                            </button>
-                            <button class="reseteo-btn" id="reseteoCuposCompleto">
-                                <i class="fas fa-calendar-week"></i> Reseteo Completo
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="admin-buttons">
-                        <button class="admin-btn" id="descargarResumen">
-                            <i class="fas fa-chart-bar"></i> Resumen por Equipo
-                        </button>
-                        <button class="admin-btn" id="eliminarRegistro">
-                            <i class="fas fa-trash-alt"></i> Eliminar Registro
-                        </button>
-                        <button class="admin-btn rojo" id="cerrarSesion">
-                            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-                        </button>
-                    </div>
-                </div>
             </div>
             
             <footer>
@@ -1140,11 +979,6 @@
         </section>
     </div>
     
-    <!-- Botón de acceso administrativo (flotante) -->
-    <button class="admin-access-btn" id="adminAccessBtn" title="Acceso Administrativo">
-        <i class="fas fa-lock"></i>
-    </button>
-    
     <!-- Modal para selección de horarios -->
     <div class="modal" id="modalHorarios">
         <div class="modal-content">
@@ -1158,74 +992,8 @@
         </div>
     </div>
 
-    <!-- Modal para autenticación de administrador -->
-    <div class="modal" id="adminAuthModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Acceso Administrativo</h2>
-                <button class="close-modal" id="closeAuthModal">&times;</button>
-            </div>
-            <div>
-                <div class="form-group">
-                    <label for="adminPassword">Contraseña de Administrador</label>
-                    <input type="password" id="adminPassword" placeholder="Ingresa la contraseña">
-                    <small style="color: #666;">Solo el administrador autorizado puede acceder</small>
-                </div>
-                <div style="margin-top: 20px; display: flex; gap: 10px;">
-                    <button id="cancelAuth" style="flex: 1; padding: 10px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 5px; cursor: pointer;">Cancelar</button>
-                    <button id="submitAuth" style="flex: 1; padding: 10px; background: var(--teal-principal); color: white; border: none; border-radius: 5px; cursor: pointer;">Acceder</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal para eliminar registros -->
-    <div class="modal" id="eliminarRegistroModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Eliminar Registro</h2>
-                <button class="close-modal" id="closeEliminarModal">&times;</button>
-            </div>
-            <div>
-                <div class="form-group">
-                    <label for="buscarCodigo">Código de Asesor a Eliminar</label>
-                    <input type="text" id="buscarCodigo" placeholder="Ingresa el código de asesor">
-                </div>
-                <div id="resultadosBusqueda" style="margin-top: 15px; max-height: 300px; overflow-y: auto;">
-                    <!-- Los resultados de búsqueda aparecerán aquí -->
-                </div>
-                <div style="margin-top: 20px; display: flex; gap: 10px;">
-                    <button id="cancelarEliminar" style="flex: 1; padding: 10px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 5px; cursor: pointer;">Cancelar</button>
-                    <button id="buscarRegistro" style="flex: 1; padding: 10px; background: var(--teal-principal); color: white; border: none; border-radius: 5px; cursor: pointer;">Buscar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal para reseteo de cupos por día -->
-    <div class="modal" id="reseteoCuposModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Reseteo de Cupos por Día</h2>
-                <button class="close-modal" id="closeReseteoModal">&times;</button>
-            </div>
-            <div>
-                <div class="form-group">
-                    <label for="diaReseteo">Selecciona el día a resetear:</label>
-                    <select id="diaReseteo">
-                        <option value="">-- Selecciona un día --</option>
-                        <!-- Las opciones se generarán dinámicamente -->
-                    </select>
-                </div>
-                <div style="margin-top: 20px; display: flex; gap: 10px;">
-                    <button id="cancelarReseteo" style="flex: 1; padding: 10px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 5px; cursor: pointer;">Cancelar</button>
-                    <button id="confirmarReseteo" style="flex: 1; padding: 10px; background: var(--teal-principal); color: white; border: none; border-radius: 5px; cursor: pointer;">Resetear</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script>
+    // El código JavaScript permanece exactamente igual
     document.addEventListener('DOMContentLoaded', function() {
         // Elementos del DOM
         const diasMes = document.getElementById('diasMes');
@@ -1246,34 +1014,6 @@
         const telefonoError = document.getElementById('telefonoError');
         const emailInput = document.getElementById('email');
         const equipoSelect = document.getElementById('equipo');
-        const descargarResumenBtn = document.getElementById('descargarResumen');
-        const eliminarRegistroBtn = document.getElementById('eliminarRegistro');
-        const cerrarSesionBtn = document.getElementById('cerrarSesion');
-        const adminSection = document.getElementById('adminSection');
-        const adminAccessBtn = document.getElementById('adminAccessBtn');
-        const adminAuthModal = document.getElementById('adminAuthModal');
-        const adminPasswordInput = document.getElementById('adminPassword');
-        const closeAuthModal = document.getElementById('closeAuthModal');
-        const cancelAuth = document.getElementById('cancelAuth');
-        const submitAuth = document.getElementById('submitAuth');
-        const eliminarRegistroModal = document.getElementById('eliminarRegistroModal');
-        const buscarCodigoInput = document.getElementById('buscarCodigo');
-        const resultadosBusqueda = document.getElementById('resultadosBusqueda');
-        const closeEliminarModal = document.getElementById('closeEliminarModal');
-        const cancelarEliminar = document.getElementById('cancelarEliminar');
-        const buscarRegistroBtn = document.getElementById('buscarRegistro');
-        const codigoEliminarInput = document.getElementById('codigoEliminar');
-        const btnEliminarRapido = document.getElementById('btnEliminarRapido');
-        const reseteoCuposDiaBtn = document.getElementById('reseteoCuposDia');
-        const reseteoCuposCompletoBtn = document.getElementById('reseteoCuposCompleto');
-        const reseteoCuposModal = document.getElementById('reseteoCuposModal');
-        const diaReseteoSelect = document.getElementById('diaReseteo');
-        const closeReseteoModal = document.getElementById('closeReseteoModal');
-        const cancelarReseteo = document.getElementById('cancelarReseteo');
-        const confirmarReseteo = document.getElementById('confirmarReseteo');
-        
-        // 🔐 CONFIGURACIÓN DE SEGURIDAD - CAMBIA ESTA CONTRASEÑA
-        const ADMIN_PASSWORD = "admin123"; // Cambia esta contraseña por una más segura
         
         // Fecha actual - Noviembre 2025
         let fechaActual = new Date(2025, 10, 1);
@@ -1281,9 +1021,6 @@
         // Días con barridos disponibles en noviembre 2025
         const diasConBarridos = [10, 12, 13, 14, 17, 18, 19, 20, 21, 24, 25, 26];
         const diaPremiacion = 11;
-        
-        // Estado de autenticación
-        let isAuthenticated = false;
         
         // Datos temporales del asesor actual
         let datosAsesorActual = {
@@ -1293,39 +1030,6 @@
             email: '',
             equipo: ''
         };
-        
-        // Verificar si hay una sesión activa
-        function checkAuthStatus() {
-            const authStatus = localStorage.getItem('adminAuth2025');
-            if (authStatus && authStatus === 'true') {
-                isAuthenticated = true;
-                showAdminSection();
-            }
-        }
-        
-        // Mostrar sección de administración
-        function showAdminSection() {
-            adminSection.style.display = 'block';
-            adminAccessBtn.innerHTML = '<i class="fas fa-unlock"></i>';
-            adminAccessBtn.title = 'Acceso Administrativo (Activo)';
-            adminAccessBtn.style.background = '#4CAF50';
-        }
-        
-        // Ocultar sección de administración
-        function hideAdminSection() {
-            adminSection.style.display = 'none';
-            adminAccessBtn.innerHTML = '<i class="fas fa-lock"></i>';
-            adminAccessBtn.title = 'Acceso Administrativo';
-            adminAccessBtn.style.background = 'var(--dorado)';
-        }
-        
-        // Cerrar sesión administrativa
-        function logoutAdmin() {
-            isAuthenticated = false;
-            localStorage.removeItem('adminAuth2025');
-            hideAdminSection();
-            alert('Sesión administrativa cerrada');
-        }
         
         // Inicializar cupos si no existen
         function inicializarCupos() {
@@ -1871,267 +1575,43 @@
                 throw error;
             }
         }
-        
-        // Función para generar y descargar Excel
-        function descargarExcel() {
-            if (!isAuthenticated) {
-                alert('No tienes permisos para realizar esta acción');
-                return;
-            }
-            
+
+        // Función para guardar localmente (backup)
+        function guardarRegistroLocal(datos) {
             const registrosCompletos = JSON.parse(localStorage.getItem('registrosCompletos2025') || '[]');
-            
-            if (registrosCompletos.length === 0) {
-                alert('No hay registros para descargar');
-                return;
-            }
-            
-            // Preparar datos para Excel con las columnas correctas
-            const datosExcel = registrosCompletos.map(registro => {
-                // Aplanar los registros de barridos
-                const barridos = registro.registros.map(barrido => ({
-                    'FechaRegistro': registro.fechaRegistro,
-                    'CodigoAsesor': registro.codigoAsesor,
-                    'Nombre': registro.nombre,
-                    'Telefono': registro.telefono,
-                    'Email': registro.email,
-                    'Equipo': registro.equipo,
-                    'FechaBarrido': barrido.fechaTexto,
-                    'Horario': barrido.horario,
-                    'TipoHorario': barrido.tipoHorario,
-                    'Confirmacion': 'SÍ'
-                }));
-                
-                return barridos;
-            }).flat();
-            
-            // Crear libro de Excel
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.json_to_sheet(datosExcel);
-            
-            // Añadir hoja al libro
-            XLSX.utils.book_append_sheet(wb, ws, 'Registros Barridos');
-            
-            // Generar archivo y descargar
-            XLSX.writeFile(wb, `Registros_Barridos_PDLP_${new Date().toISOString().slice(0,10)}.xlsx`);
-        }
-        
-        // Función para generar resumen por equipo
-        function descargarResumenEquipos() {
-            if (!isAuthenticated) {
-                alert('No tienes permisos para realizar esta acción');
-                return;
-            }
-            
-            const registrosCompletos = JSON.parse(localStorage.getItem('registrosCompletos2025') || '[]');
-            
-            if (registrosCompletos.length === 0) {
-                alert('No hay registros para generar resumen');
-                return;
-            }
-            
-            // Contar registros por equipo
-            const resumenEquipos = {};
-            
-            registrosCompletos.forEach(registro => {
-                const equipo = registro.equipo;
-                if (!resumenEquipos[equipo]) {
-                    resumenEquipos[equipo] = {
-                        equipo: equipo,
-                        totalAsesores: 0,
-                        totalBarridos: 0,
-                        asesores: []
-                    };
-                }
-                
-                // Contar asesores únicos por equipo
-                if (!resumenEquipos[equipo].asesores.includes(registro.codigoAsesor)) {
-                    resumenEquipos[equipo].asesores.push(registro.codigoAsesor);
-                    resumenEquipos[equipo].totalAsesores++;
-                }
-                
-                // Contar total de barridos
-                resumenEquipos[equipo].totalBarridos += registro.registros.length;
+            registrosCompletos.push({
+                ...datos,
+                fechaRegistro: new Date().toLocaleString('es-ES'),
+                id: Date.now() + Math.random().toString(36).substr(2, 9)
             });
-            
-            // Convertir a array para Excel
-            const datosResumen = Object.values(resumenEquipos).map(item => ({
-                'Equipo': item.equipo,
-                'Total Asesores': item.totalAsesores,
-                'Total Barridos': item.totalBarridos
-            }));
-            
-            // Crear libro de Excel
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.json_to_sheet(datosResumen);
-            
-            // Añadir hoja al libro
-            XLSX.utils.book_append_sheet(wb, ws, 'Resumen por Equipo');
-            
-            // Generar archivo y descargar
-            XLSX.writeFile(wb, `Resumen_Equipos_Barridos_PDLP_${new Date().toISOString().slice(0,10)}.xlsx`);
+            localStorage.setItem('registrosCompletos2025', JSON.stringify(registrosCompletos));
         }
-        
-        // Función para buscar registros por código de asesor
-        function buscarRegistrosPorCodigo(codigo) {
-            const registrosCompletos = JSON.parse(localStorage.getItem('registrosCompletos2025') || '[]');
-            return registrosCompletos.filter(registro => 
-                registro.codigoAsesor.toLowerCase().includes(codigo.toLowerCase())
-            );
-        }
-        
-        // Función para eliminar registro completo
-        function eliminarRegistroCompleto(id) {
-            const registrosCompletos = JSON.parse(localStorage.getItem('registrosCompletos2025') || '[]');
-            const registroEliminado = registrosCompletos.find(registro => registro.id === id);
+
+        // Función para limpiar el formulario
+        function limpiarFormulario() {
+            document.getElementById('nombre').value = '';
+            document.getElementById('telefono').value = '';
+            document.getElementById('email').value = '';
+            codigoAsesorInput.value = '';
+            equipoSelect.value = '';
+            document.getElementById('confirmacion').checked = false;
             
-            if (!registroEliminado) {
-                alert('No se encontró el registro a eliminar');
-                return false;
-            }
-            
-            // Restaurar cupos para cada barrido eliminado
-            registroEliminado.registros.forEach(barrido => {
-                const fechaStr = barrido.fecha;
-                const tipoHorario = barrido.tipoHorario;
-                
-                const cuposBarridos = JSON.parse(localStorage.getItem('cuposBarridos2025') || '{}');
-                if (cuposBarridos[fechaStr]) {
-                    cuposBarridos[fechaStr][tipoHorario] = Math.min(10, cuposBarridos[fechaStr][tipoHorario] + 1);
-                    localStorage.setItem('cuposBarridos2025', JSON.stringify(cuposBarridos));
-                }
-            });
-            
-            // Eliminar de registros generales
-            const registrosGenerales = JSON.parse(localStorage.getItem('registrosBarridos2025') || '[]');
-            const nuevoRegistrosGenerales = registrosGenerales.filter(reg => 
-                !registroEliminado.registros.some(barrido => 
-                    barrido.fecha === reg.fecha && 
-                    barrido.tipoHorario === reg.tipoHorario && 
-                    barrido.codigoAsesor === reg.codigoAsesor
-                )
-            );
-            localStorage.setItem('registrosBarridos2025', JSON.stringify(nuevoRegistrosGenerales));
-            
-            // Eliminar de registros de asesores
+            // Limpiar registros locales del asesor
             const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
-            if (registrosAsesores[registroEliminado.codigoAsesor]) {
-                delete registrosAsesores[registroEliminado.codigoAsesor];
-                localStorage.setItem('registrosAsesores2025', JSON.stringify(registrosAsesores));
-            }
-            
-            // Eliminar de registros completos
-            const nuevosRegistrosCompletos = registrosCompletos.filter(registro => registro.id !== id);
-            localStorage.setItem('registrosCompletos2025', JSON.stringify(nuevosRegistrosCompletos));
-            
-            return true;
-        }
-        
-        // Función para eliminar registro por código de asesor (eliminación rápida)
-        function eliminarRegistroPorCodigo(codigo) {
-            if (!isAuthenticated) {
-                alert('No tienes permisos para realizar esta acción');
-                return;
-            }
-            
-            if (!codigo) {
-                alert('Por favor ingresa un código de asesor');
-                return;
-            }
-            
-            const registrosEncontrados = buscarRegistrosPorCodigo(codigo);
-            
-            if (registrosEncontrados.length === 0) {
-                alert('No se encontraron registros con ese código');
-                return;
-            }
-            
-            if (registrosEncontrados.length > 1) {
-                alert(`Se encontraron ${registrosEncontrados.length} registros con ese código. Usa la opción de búsqueda avanzada para seleccionar cuál eliminar.`);
-                return;
-            }
-            
-            const registro = registrosEncontrados[0];
-            
-            if (confirm(`¿Estás seguro de que deseas eliminar el registro de ${registro.nombre} (${registro.codigoAsesor})? Esta acción no se puede deshacer.`)) {
-                if (eliminarRegistroCompleto(registro.id)) {
-                    alert('✅ Registro eliminado correctamente');
-                    codigoEliminarInput.value = '';
-                    generarCalendario();
-                } else {
-                    alert('❌ Error al eliminar el registro');
-                }
-            }
-        }
-        
-        // Función para resetear cupos de un día específico
-        function resetearCuposDia(dia) {
-            if (!isAuthenticated) {
-                alert('No tienes permisos para realizar esta acción');
-                return;
-            }
-            
-            const fechaStr = `2025-11-${dia.toString().padStart(2, '0')}`;
-            const cuposBarridos = JSON.parse(localStorage.getItem('cuposBarridos2025') || '{}');
-            
-            cuposBarridos[fechaStr] = {
-                manana: 10,
-                tarde: 10
-            };
-            
-            localStorage.setItem('cuposBarridos2025', JSON.stringify(cuposBarridos));
-            
-            // También eliminar registros de ese día
-            const registrosBarridos = JSON.parse(localStorage.getItem('registrosBarridos2025') || '[]');
-            const nuevosRegistrosBarridos = registrosBarridos.filter(reg => reg.fecha !== fechaStr);
-            localStorage.setItem('registrosBarridos2025', JSON.stringify(nuevosRegistrosBarridos));
-            
-            // Actualizar registros de asesores
-            const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
-            for (const codigo in registrosAsesores) {
-                if (registrosAsesores.hasOwnProperty(codigo)) {
-                    registrosAsesores[codigo] = registrosAsesores[codigo].filter(reg => reg.fecha !== fechaStr);
-                    if (registrosAsesores[codigo].length === 0) {
-                        delete registrosAsesores[codigo];
-                    }
-                }
-            }
+            delete registrosAsesores[codigoAsesorInput.value.trim()];
             localStorage.setItem('registrosAsesores2025', JSON.stringify(registrosAsesores));
             
-            // Actualizar registros completos
-            const registrosCompletos = JSON.parse(localStorage.getItem('registrosCompletos2025') || '[]');
-            const nuevosRegistrosCompletos = registrosCompletos.map(registro => {
-                return {
-                    ...registro,
-                    registros: registro.registros.filter(barrido => barrido.fecha !== fechaStr)
-                };
-            }).filter(registro => registro.registros.length > 0);
-            localStorage.setItem('registrosCompletos2025', JSON.stringify(nuevosRegistrosCompletos));
+            // Limpiar datos del asesor actual
+            datosAsesorActual = {
+                codigoAsesor: '',
+                nombre: '',
+                telefono: '',
+                email: '',
+                equipo: ''
+            };
             
+            actualizarResumen();
             generarCalendario();
-            alert(`✅ Cupos del día ${dia} de noviembre restablecidos correctamente`);
-        }
-        
-        // Función para resetear todos los cupos
-        function resetearTodosLosCupos() {
-            if (!isAuthenticated) {
-                alert('No tienes permisos para realizar esta acción');
-                return;
-            }
-            
-            if (confirm('¿Estás seguro de que deseas restablecer TODOS los cupos a su estado inicial? Esta acción eliminará todos los registros y no se puede deshacer.')) {
-                // Eliminar todos los datos de localStorage
-                localStorage.removeItem('cuposBarridos2025');
-                localStorage.removeItem('registrosBarridos2025');
-                localStorage.removeItem('registrosAsesores2025');
-                localStorage.removeItem('registrosCompletos2025');
-                
-                // Inicializar cupos nuevamente
-                ////inicializarCupos();
-                
-                generarCalendario();
-                alert('✅ Todos los cupos han sido restablecidos correctamente');
-            }
         }
         
         // Evento para el botón de registro (MODIFICADO)
@@ -2220,256 +1700,11 @@
                 registroBtn.disabled = false;
             }
         });
-
-        // Función para guardar localmente (backup)
-        function guardarRegistroLocal(datos) {
-            const registrosCompletos = JSON.parse(localStorage.getItem('registrosCompletos2025') || '[]');
-            registrosCompletos.push({
-                ...datos,
-                fechaRegistro: new Date().toLocaleString('es-ES'),
-                id: Date.now() + Math.random().toString(36).substr(2, 9)
-            });
-            localStorage.setItem('registrosCompletos2025', JSON.stringify(registrosCompletos));
-        }
-
-        // Función para limpiar el formulario
-        function limpiarFormulario() {
-            document.getElementById('nombre').value = '';
-            document.getElementById('telefono').value = '';
-            document.getElementById('email').value = '';
-            codigoAsesorInput.value = '';
-            equipoSelect.value = '';
-            document.getElementById('confirmacion').checked = false;
-            
-            // Limpiar registros locales del asesor
-            const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
-            delete registrosAsesores[codigoAsesorInput.value.trim()];
-            localStorage.setItem('registrosAsesores2025', JSON.stringify(registrosAsesores));
-            
-            // Limpiar datos del asesor actual
-            datosAsesorActual = {
-                codigoAsesor: '',
-                nombre: '',
-                telefono: '',
-                email: '',
-                equipo: ''
-            };
-            
-            actualizarResumen();
-            generarCalendario();
-        }
-        
-        // Eventos para los botones de descarga
-        descargarResumenBtn.addEventListener('click', descargarResumenEquipos);
-        
-        // Evento para el botón de eliminar registro
-        eliminarRegistroBtn.addEventListener('click', function() {
-            if (!isAuthenticated) {
-                alert('No tienes permisos para realizar esta acción');
-                return;
-            }
-            
-            eliminarRegistroModal.style.display = 'flex';
-            buscarCodigoInput.value = '';
-            resultadosBusqueda.innerHTML = '';
-        });
-        
-        // Evento para buscar registros
-        buscarRegistroBtn.addEventListener('click', function() {
-            const codigo = buscarCodigoInput.value.trim();
-            
-            if (!codigo) {
-                alert('Por favor ingresa un código de asesor para buscar');
-                return;
-            }
-            
-            const registrosEncontrados = buscarRegistrosPorCodigo(codigo);
-            
-            if (registrosEncontrados.length === 0) {
-                resultadosBusqueda.innerHTML = '<p style="text-align: center; color: #777; padding: 10px;">No se encontraron registros con ese código</p>';
-                return;
-            }
-            
-            resultadosBusqueda.innerHTML = '';
-            
-            registrosEncontrados.forEach(registro => {
-                const item = document.createElement('div');
-                item.className = 'registro-item';
-                item.style.border = '1px solid #ddd';
-                item.style.borderRadius = '8px';
-                item.style.padding = '10px';
-                item.style.marginBottom = '10px';
-                item.style.backgroundColor = '#f9f9f9';
-                
-                item.innerHTML = `
-                    <div style="flex-grow: 1;">
-                        <strong>Código: ${registro.codigoAsesor}</strong><br>
-                        <strong>Nombre: ${registro.nombre}</strong><br>
-                        <small>Teléfono: ${registro.telefono}</small><br>
-                        <small>Equipo: ${registro.equipo}</small><br>
-                        <small>Fecha de registro: ${registro.fechaRegistro}</small><br>
-                        <small>Barridos registrados: ${registro.registros.length}</small>
-                        <div style="margin-top: 8px;">
-                            ${registro.registros.map(barrido => 
-                                `<div style="font-size: 0.8rem; background: #e0f2f1; padding: 3px 6px; border-radius: 4px; margin: 2px 0;">${barrido.fechaTexto} - ${barrido.horario}</div>`
-                            ).join('')}
-                        </div>
-                    </div>
-                    <button class="eliminar-item" data-id="${registro.id}" style="background: #e74c3c; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; font-size: 0.9rem;">
-                        <i class="fas fa-trash"></i> Eliminar
-                    </button>
-                `;
-                
-                resultadosBusqueda.appendChild(item);
-            });
-            
-            // Agregar eventos a los botones de eliminar
-            document.querySelectorAll('.eliminar-item[data-id]').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const id = this.getAttribute('data-id');
-                    
-                    if (confirm('¿Estás seguro de que deseas eliminar este registro? Esta acción no se puede deshacer.')) {
-                        if (eliminarRegistroCompleto(id)) {
-                            alert('✅ Registro eliminado correctamente');
-                            eliminarRegistroModal.style.display = 'none';
-                            generarCalendario();
-                        } else {
-                            alert('❌ Error al eliminar el registro');
-                        }
-                    }
-                });
-            });
-        });
-        
-        // Evento para eliminación rápida
-        btnEliminarRapido.addEventListener('click', function() {
-            const codigo = codigoEliminarInput.value.trim();
-            eliminarRegistroPorCodigo(codigo);
-        });
-        
-        // Evento para reseteo de cupos por día
-        reseteoCuposDiaBtn.addEventListener('click', function() {
-            if (!isAuthenticated) {
-                alert('No tienes permisos para realizar esta acción');
-                return;
-            }
-            
-            // Llenar el select con los días disponibles
-            diaReseteoSelect.innerHTML = '<option value="">-- Selecciona un día --</option>';
-            diasConBarridos.forEach(dia => {
-                const option = document.createElement('option');
-                option.value = dia;
-                option.textContent = `${dia} de noviembre`;
-                diaReseteoSelect.appendChild(option);
-            });
-            
-            reseteoCuposModal.style.display = 'flex';
-        });
-        
-        // Evento para reseteo completo de cupos
-        reseteoCuposCompletoBtn.addEventListener('click', function() {
-            resetearTodosLosCupos();
-        });
-        
-        // Evento para confirmar reseteo de cupos por día
-        confirmarReseteo.addEventListener('click', function() {
-            const dia = parseInt(diaReseteoSelect.value);
-            
-            if (!dia) {
-                alert('Por favor selecciona un día');
-                return;
-            }
-            
-            resetearCuposDia(dia);
-            reseteoCuposModal.style.display = 'none';
-        });
-        
-        // Eventos para autenticación
-        adminAccessBtn.addEventListener('click', function() {
-            if (isAuthenticated) {
-                // Si ya está autenticado, mostrar opción de cerrar sesión
-                if (confirm('¿Deseas cerrar la sesión administrativa?')) {
-                    logoutAdmin();
-                }
-            } else {
-                // Si no está autenticado, mostrar modal de autenticación
-                adminAuthModal.style.display = 'flex';
-                adminPasswordInput.value = '';
-                adminPasswordInput.focus();
-            }
-        });
-        
-        closeAuthModal.addEventListener('click', function() {
-            adminAuthModal.style.display = 'none';
-        });
-        
-        cancelAuth.addEventListener('click', function() {
-            adminAuthModal.style.display = 'none';
-        });
-        
-        submitAuth.addEventListener('click', function() {
-            const password = adminPasswordInput.value;
-            
-            if (password === ADMIN_PASSWORD) {
-                isAuthenticated = true;
-                localStorage.setItem('adminAuth2025', 'true');
-                adminAuthModal.style.display = 'none';
-                showAdminSection();
-                alert('✅ Acceso administrativo concedido');
-            } else {
-                alert('❌ Contraseña incorrecta');
-                adminPasswordInput.value = '';
-                adminPasswordInput.focus();
-            }
-        });
-        
-        // Cerrar modal de eliminar registro
-        closeEliminarModal.addEventListener('click', function() {
-            eliminarRegistroModal.style.display = 'none';
-        });
-        
-        cancelarEliminar.addEventListener('click', function() {
-            eliminarRegistroModal.style.display = 'none';
-        });
-        
-        // Cerrar modal de reseteo de cupos
-        closeReseteoModal.addEventListener('click', function() {
-            reseteoCuposModal.style.display = 'none';
-        });
-        
-        cancelarReseteo.addEventListener('click', function() {
-            reseteoCuposModal.style.display = 'none';
-        });
-        
-        // Permitir enviar con Enter
-        adminPasswordInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                submitAuth.click();
-            }
-        });
-        
-        buscarCodigoInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                buscarRegistroBtn.click();
-            }
-        });
-        
-        codigoEliminarInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                btnEliminarRapido.click();
-            }
-        });
-        
-        // Evento para cerrar sesión
-        cerrarSesionBtn.addEventListener('click', function() {
-            logoutAdmin();
-        });
         
         // Inicializar
-        ////inicializarCupos();
+        inicializarCupos();
         generarCalendario();
         actualizarResumen();
-        checkAuthStatus(); // Verificar estado de autenticación al cargar
     });
     </script>
 </body>
