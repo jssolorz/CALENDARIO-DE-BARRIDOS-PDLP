@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-     <meta http-equiv="Content-Security-Policy" 
+    <meta http-equiv="Content-Security-Policy" 
       content="default-src 'self' https://script.google.com https://docs.google.com https://sheets.google.com https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com 'unsafe-inline' 'unsafe-eval'; 
                connect-src 'self' https://script.google.com https://docs.google.com https://sheets.google.com https://cdnjs.cloudflare.com;
                script-src 'self' https://cdnjs.cloudflare.com https://script.google.com 'unsafe-inline' 'unsafe-eval';
@@ -652,6 +652,27 @@
             color: #ccc;
         }
         
+        .sync-status {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.8rem;
+            margin-top: 5px;
+            color: #666;
+        }
+        
+        .sync-status.syncing {
+            color: #f39c12;
+        }
+        
+        .sync-status.success {
+            color: #2ecc71;
+        }
+        
+        .sync-status.error {
+            color: #e74c3c;
+        }
+        
         @media (min-width: 768px) {
             .container {
                 max-width: 1400px;
@@ -863,6 +884,11 @@
                 </div>
             </div>
             
+            <div class="sync-status" id="syncStatus">
+                <i class="fas fa-sync-alt"></i>
+                <span>Última sincronización: Nunca</span>
+            </div>
+            
             <div class="dias-semana">
                 <div class="dia-semana">Dom</div>
                 <div class="dia-semana">Lun</div>
@@ -970,7 +996,7 @@
                     <div class="footer-contact">
                         <span>RESPONSABLE Jonathan Solórzano</span>
                         <i class="fas fa-phone"></i>
-                        <a href="https://wa.me/593960601592?text=Hola%20Jonathan,%20me%20interesa%20obtener%20m%C3%A1s%20informaci%C3%B3n%20sobre%20los%20barridos%20del%20Parque%20de%20la%20Paz" target="_blank" class="whatsapp-link">
+                        <a href="https://wa.me/593960601592?text=Hola%20Jonathan,%20me%20interesa%20obtener%20más%20información%20sobre%20los%20barridos%20del%20Parque%20de%20la%20Paz" target="_blank" class="whatsapp-link">
                             <i class="fab fa-whatsapp"></i> 0960601592
                         </a>
                     </div>
@@ -1013,12 +1039,13 @@
         const telefonoError = document.getElementById('telefonoError');
         const emailInput = document.getElementById('email');
         const equipoSelect = document.getElementById('equipo');
+        const syncStatus = document.getElementById('syncStatus');
         
         // Fecha actual - Noviembre 2025
         let fechaActual = new Date(2025, 10, 1);
         
         // Días con barridos disponibles en noviembre 2025
-        const diasConBarridos = [10, 12, 13, 14, 17, 18, 19, 20, 21, 24, 25, 26];
+        const diasConBarridos = [10, 11, 12, 13, 14, 17, 18, 19, 20, 21, 24, 25, 26];
         const diaPremiacion = 11;
         
         // Datos temporales del asesor actual
@@ -1029,83 +1056,88 @@
             email: '',
             equipo: ''
         };
-
-        // URL del Google Apps Script
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwmvo4gT3Q__DROv31esOzKZ8A4-41GRFtXNYIMtsdPT1G_2Kngpawv3GsLzEcvN7Oo/exec';
         
-        // ========== FUNCIONES CENTRALIZADAS ==========
+        // URL del Google Apps Script para obtener datos de Google Sheets
+        const SCRIPT_URL_GET = 'https://script.google.com/macros/s/AKfycbwmvo4gT3Q__DROv31esOzKZ8A4-41GRFtXNYIMtsdPT1G_2Kngpawv3GsLzEcvN7Oo/exec';
         
-        // Obtener cupos desde Google Sheets
-        async function obtenerCuposDesdeSheets() {
+        // Función para obtener datos de cupos desde Google Sheets
+        async function obtenerCuposDesdeGoogleSheets() {
             try {
-                const response = await fetch(`${SCRIPT_URL}?action=obtenerCupos`);
+                syncStatus.classList.add('syncing');
+                syncStatus.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Sincronizando...';
+                
+                const response = await fetch(`${SCRIPT_URL_GET}?action=getCupos`);
+                
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+                
                 const data = await response.json();
-                return data.cupos || generarCuposIniciales();
+                
+                if (data.success) {
+                    // Actualizar cupos en localStorage
+                    localStorage.setItem('cuposBarridos2025', JSON.stringify(data.cupos));
+                    
+                    // Actualizar estado de sincronización
+                    const ahora = new Date();
+                    syncStatus.classList.remove('syncing');
+                    syncStatus.classList.add('success');
+                    syncStatus.innerHTML = `<i class="fas fa-check-circle"></i> Última sincronización: ${ahora.toLocaleTimeString()}`;
+                    
+                    console.log('✅ Cupos sincronizados desde Google Sheets:', data.cupos);
+                    return data.cupos;
+                } else {
+                    throw new Error(data.message || 'Error desconocido al obtener datos');
+                }
             } catch (error) {
-                console.error('Error al obtener cupos:', error);
-                return generarCuposIniciales();
+                console.error('❌ Error al obtener cupos desde Google Sheets:', error);
+                syncStatus.classList.remove('syncing');
+                syncStatus.classList.add('error');
+                syncStatus.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Error de sincronización: ${error.message}`;
+                
+                // Usar datos locales como respaldo
+                return JSON.parse(localStorage.getItem('cuposBarridos2025') || '{}');
             }
         }
         
-        // Guardar cupos en Google Sheets
-        async function guardarCuposEnSheets(cupos) {
-            try {
-                await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'actualizarCupos',
-                        cupos: cupos
-                    })
-                });
-            } catch (error) {
-                console.error('Error al guardar cupos:', error);
-            }
-        }
-        
-        // Verificar si asesor ya está registrado
-        async function asesorYaRegistrado(codigoAsesor, fechaStr, tipoHorario) {
-            try {
-                const response = await fetch(`${SCRIPT_URL}?action=verificarRegistro&codigo=${codigoAsesor}&fecha=${fechaStr}&horario=${tipoHorario}`);
-                const data = await response.json();
-                return data.yaRegistrado || false;
-            } catch (error) {
-                console.error('Error al verificar registro:', error);
-                return false;
-            }
-        }
-        
-        // Obtener registros del asesor
-        async function obtenerRegistrosAsesor(codigoAsesor) {
-            try {
-                const response = await fetch(`${SCRIPT_URL}?action=obtenerRegistros&codigo=${codigoAsesor}`);
-                const data = await response.json();
-                return data.registros || [];
-            } catch (error) {
-                console.error('Error al obtener registros:', error);
-                return [];
-            }
-        }
-        
-        // Función auxiliar para generar cupos iniciales (si falla la conexión)
-        function generarCuposIniciales() {
-            const diasConBarridos = [10, 12, 13, 14, 17, 18, 19, 20, 21, 24, 25, 26];
-            const cupos = {};
-            
-            diasConBarridos.forEach(dia => {
-                const fechaStr = `2025-11-${dia.toString().padStart(2, '0')}`;
-                cupos[fechaStr] = {
-                    manana: 10,
-                    tarde: 10
-                };
+        // Función para sincronizar automáticamente cada 30 segundos
+        function iniciarSincronizacionAutomatica() {
+            // Sincronizar inmediatamente al cargar
+            obtenerCuposDesdeGoogleSheets().then(() => {
+                generarCalendario();
             });
             
-            return cupos;
+            // Sincronizar cada 30 segundos
+            setInterval(() => {
+                obtenerCuposDesdeGoogleSheets().then(() => {
+                    generarCalendario();
+                });
+            }, 30000);
         }
-
-        // ========== FUNCIONES EXISTENTES MODIFICADAS ==========
+        
+        // Inicializar cupos si no existen
+        function inicializarCupos() {
+            if (!localStorage.getItem('cuposBarridos2025')) {
+                const cuposIniciales = {};
+                diasConBarridos.forEach(dia => {
+                    cuposIniciales[`2025-11-${dia.toString().padStart(2, '0')}`] = {
+                        manana: 10,
+                        tarde: 10
+                    };
+                });
+                localStorage.setItem('cuposBarridos2025', JSON.stringify(cuposIniciales));
+            }
+        }
+        
+        // Inicializar registros de asesores si no existen
+        if (!localStorage.getItem('registrosAsesores2025')) {
+            localStorage.setItem('registrosAsesores2025', JSON.stringify({}));
+        }
+        
+        // Inicializar registros completos si no existen
+        if (!localStorage.getItem('registrosCompletos2025')) {
+            localStorage.setItem('registrosCompletos2025', JSON.stringify([]));
+        }
         
         // Convertir texto a mayúsculas automáticamente
         nombreInput.addEventListener('input', function() {
@@ -1188,7 +1220,7 @@
         }
         
         // Generar calendario
-        async function generarCalendario() {
+        function generarCalendario() {
             diasMes.innerHTML = '';
             const opciones = { month: 'long', year: 'numeric' };
             mesAnio.textContent = fechaActual.toLocaleDateString('es-ES', opciones);
@@ -1217,9 +1249,6 @@
                 diasMes.appendChild(diaElement);
             }
             
-            // Obtener cupos actualizados desde Google Sheets
-            const cuposBarridos = await obtenerCuposDesdeSheets();
-            
             for (let i = 1; i <= ultimoDia.getDate(); i++) {
                 const diaElement = document.createElement('div');
                 diaElement.className = 'dia';
@@ -1235,7 +1264,7 @@
                 } else if (diasConBarridos.includes(i)) {
                     diaElement.classList.add('disponible');
                     const fechaStr = `2025-11-${i.toString().padStart(2, '0')}`;
-                    const cuposDia = cuposBarridos[fechaStr] || { manana: 10, tarde: 10 };
+                    const cuposDia = obtenerCuposDia(fechaStr);
                     
                     if (cuposDia.manana <= 0 && cuposDia.tarde <= 0) {
                         diaElement.classList.add('agotado');
@@ -1257,7 +1286,7 @@
                     diaElement.style.cursor = 'default';
                 } else if (diasConBarridos.includes(i)) {
                     const fechaStr = `2025-11-${i.toString().padStart(2, '0')}`;
-                    const cuposDia = cuposBarridos[fechaStr] || { manana: 10, tarde: 10 };
+                    const cuposDia = obtenerCuposDia(fechaStr);
                     
                     const contadorCupos = document.createElement('div');
                     let claseCupos = 'cupos-disponibles';
@@ -1292,8 +1321,37 @@
             }
         }
         
+        // Obtener cupos para un día específico
+        function obtenerCuposDia(fechaStr) {
+            const cuposBarridos = JSON.parse(localStorage.getItem('cuposBarridos2025') || '{}');
+            return cuposBarridos[fechaStr] || { manana: 10, tarde: 10 };
+        }
+        
+        // Verificar si el asesor ya está registrado
+        function asesorYaRegistrado(codigoAsesor, fechaStr, tipoHorario) {
+            const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
+            if (!registrosAsesores[codigoAsesor]) return false;
+            return registrosAsesores[codigoAsesor].some(registro => 
+                registro.fecha === fechaStr && registro.tipoHorario === tipoHorario
+            );
+        }
+        
+        // Obtener horarios ya registrados por el asesor
+        function obtenerHorariosRegistradosAsesor(codigoAsesor, fechaStr) {
+            const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
+            const horariosRegistrados = [];
+            if (registrosAsesores[codigoAsesor]) {
+                registrosAsesores[codigoAsesor].forEach(registro => {
+                    if (registro.fecha === fechaStr) {
+                        horariosRegistrados.push(registro.tipoHorario);
+                    }
+                });
+            }
+            return horariosRegistrados;
+        }
+        
         // Abrir modal para seleccionar horarios
-        async function abrirModalHorarios(dia) {
+        function abrirModalHorarios(dia) {
             const codigoAsesor = codigoAsesorInput.value.trim();
             
             if (!codigoAsesor) {
@@ -1307,12 +1365,8 @@
             const fechaFormateada = fecha.toLocaleDateString('es-ES', opciones);
             const fechaStr = fecha.toISOString().split('T')[0];
             
-            // Obtener cupos actualizados desde Google Sheets
-            const cuposBarridos = await obtenerCuposDesdeSheets();
-            const cuposDia = cuposBarridos[fechaStr] || { manana: 10, tarde: 10 };
-            
-            // Verificar registros existentes
-            const horariosYaRegistrados = await obtenerHorariosRegistradosAsesor(codigoAsesor, fechaStr);
+            const cuposDia = obtenerCuposDia(fechaStr);
+            const horariosYaRegistrados = obtenerHorariosRegistradosAsesor(codigoAsesor, fechaStr);
             
             modalTitulo.textContent = `Barridos - ${fechaFormateada}`;
             
@@ -1357,7 +1411,7 @@
                 modalHorarios.style.display = 'none';
             });
             
-            modalBody.querySelector('#guardarHorarios').addEventListener('click', async function() {
+            modalBody.querySelector('#guardarHorarios').addEventListener('click', function() {
                 const horariosSeleccionados = modalBody.querySelectorAll('.horario-option.seleccionado');
                 if (horariosSeleccionados.length === 0) {
                     alert('Por favor selecciona al menos un horario');
@@ -1373,45 +1427,41 @@
                         return;
                     }
                     
-                    if (await asesorYaRegistrado(codigoAsesor, fechaStr, tipoHorario)) {
+                    if (asesorYaRegistrado(codigoAsesor, fechaStr, tipoHorario)) {
                         alert(`Ya estás registrado en el horario de ${tipoHorario} para este día`);
                         return;
                     }
                 }
                 
-                // Actualizar cupos en Google Sheets
-                const cuposActualizados = await obtenerCuposDesdeSheets();
-                
                 horariosSeleccionados.forEach(horario => {
                     const tipoHorario = horario.getAttribute('data-horario');
                     const horarioTexto = tipoHorario === 'manana' ? '09:00 - 12:00 (Centro / Sur)' : '14:30 - 17:30 (Norte)';
                     
-                    // Actualizar cupos localmente
-                    if (!cuposActualizados[fechaStr]) {
-                        cuposActualizados[fechaStr] = { manana: 10, tarde: 10 };
-                    }
-                    cuposActualizados[fechaStr][tipoHorario] = Math.max(0, cuposActualizados[fechaStr][tipoHorario] - 1);
-                });
-                
-                // Guardar cupos actualizados en Google Sheets
-                await guardarCuposEnSheets(cuposActualizados);
-                
-                // Registrar cada barrido individualmente
-                for (const horario of horariosSeleccionados) {
-                    const tipoHorario = horario.getAttribute('data-horario');
-                    const horarioTexto = tipoHorario === 'manana' ? '09:00 - 12:00 (Centro / Sur)' : '14:30 - 17:30 (Norte)';
+                    // Guardar registro localmente
+                    const registros = JSON.parse(localStorage.getItem('registrosBarridos2025') || '[]');
+                    registros.push({
+                        fecha: fechaStr,
+                        fechaTexto: fechaFormateada,
+                        horario: horarioTexto,
+                        tipoHorario: tipoHorario,
+                        codigoAsesor: codigoAsesor
+                    });
+                    localStorage.setItem('registrosBarridos2025', JSON.stringify(registros));
                     
-                    // Registrar en Google Sheets
-                    await registrarBarridoIndividual({
-                        codigoAsesor: codigoAsesor,
-                        fechaBarrido: fechaFormateada,
+                    const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
+                    if (!registrosAsesores[codigoAsesor]) {
+                        registrosAsesores[codigoAsesor] = [];
+                    }
+                    registrosAsesores[codigoAsesor].push({
+                        fecha: fechaStr,
+                        fechaTexto: fechaFormateada,
                         horario: horarioTexto,
                         tipoHorario: tipoHorario
                     });
-                }
+                    localStorage.setItem('registrosAsesores2025', JSON.stringify(registrosAsesores));
+                });
                 
-                await actualizarResumen();
-                await generarCalendario();
+                actualizarResumen();
                 modalHorarios.style.display = 'none';
                 alert('¡Registro exitoso! Has reservado tu cupo.');
             });
@@ -1419,53 +1469,14 @@
             modalHorarios.style.display = 'flex';
         }
         
-        // Registrar barrido individual en Google Sheets
-        async function registrarBarridoIndividual(datos) {
-            try {
-                await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'registrarAsesor',
-                        codigoAsesor: datos.codigoAsesor,
-                        nombre: datosAsesorActual.nombre,
-                        telefono: datosAsesorActual.telefono,
-                        email: datosAsesorActual.email,
-                        equipo: datosAsesorActual.equipo,
-                        fechaBarrido: datos.fechaBarrido,
-                        horario: datos.horario,
-                        tipoHorario: datos.tipoHorario,
-                        confirmacion: 'SÍ'
-                    })
-                });
-            } catch (error) {
-                console.error('Error al registrar barrido:', error);
-            }
-        }
-        
-        // Obtener horarios ya registrados por el asesor
-        async function obtenerHorariosRegistradosAsesor(codigoAsesor, fechaStr) {
-            const registros = await obtenerRegistrosAsesor(codigoAsesor);
-            const horariosRegistrados = [];
-            
-            registros.forEach(registro => {
-                if (registro.fecha === fechaStr) {
-                    horariosRegistrados.push(registro.tipoHorario);
-                }
-            });
-            
-            return horariosRegistrados;
-        }
-        
         // Actualizar resumen de registros
-        async function actualizarResumen() {
+        function actualizarResumen() {
             const codigoAsesor = codigoAsesorInput.value.trim();
             let registros = [];
             
             if (codigoAsesor) {
-                registros = await obtenerRegistrosAsesor(codigoAsesor);
+                const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
+                registros = registrosAsesores[codigoAsesor] || [];
             }
             
             listaRegistros.innerHTML = '';
@@ -1487,7 +1498,7 @@
                 });
                 
                 document.querySelectorAll('.eliminar-item').forEach(btn => {
-                    btn.addEventListener('click', async function() {
+                    btn.addEventListener('click', function() {
                         const index = parseInt(this.getAttribute('data-index'));
                         const fecha = this.getAttribute('data-fecha');
                         const tipoHorario = this.getAttribute('data-tipo');
@@ -1498,15 +1509,20 @@
                             return;
                         }
                         
-                        // Actualizar cupos en Google Sheets (liberar cupo)
-                        const cuposActualizados = await obtenerCuposDesdeSheets();
-                        if (cuposActualizados[fecha]) {
-                            cuposActualizados[fecha][tipoHorario] = Math.min(10, cuposActualizados[fecha][tipoHorario] + 1);
-                            await guardarCuposEnSheets(cuposActualizados);
+                        const registrosGenerales = JSON.parse(localStorage.getItem('registrosBarridos2025') || '[]');
+                        const nuevoRegistrosGenerales = registrosGenerales.filter(reg => 
+                            !(reg.fecha === fecha && reg.tipoHorario === tipoHorario && reg.codigoAsesor === codigoAsesor)
+                        );
+                        localStorage.setItem('registrosBarridos2025', JSON.stringify(nuevoRegistrosGenerales));
+                        
+                        const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
+                        if (registrosAsesores[codigoAsesor]) {
+                            registrosAsesores[codigoAsesor].splice(index, 1);
+                            localStorage.setItem('registrosAsesores2025', JSON.stringify(registrosAsesores));
                         }
                         
-                        await actualizarResumen();
-                        await generarCalendario();
+                        actualizarResumen();
+                        generarCalendario();
                     });
                 });
             }
@@ -1523,51 +1539,118 @@
                 return;
             }
             
-            // Obtener registros actualizados
-            obtenerRegistrosAsesor(codigoAsesor).then(registros => {
-                if (registros.length === 0) {
-                    alert('No tienes barridos registrados para generar una constancia');
-                    return;
+            const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
+            const registros = registrosAsesores[codigoAsesor] || [];
+            
+            if (registros.length === 0) {
+                alert('No tienes barridos registrados para generar una constancia');
+                return;
+            }
+            
+            // Obtener información del asesor desde los datos actuales del formulario
+            const nombreAsesor = datosAsesorActual.nombre || "Asesor";
+            const telefonoAsesor = datosAsesorActual.telefono || "";
+            const emailAsesor = datosAsesorActual.email || "";
+            const equipoAsesor = datosAsesorActual.equipo || "Equipo";
+            
+            // Preparar datos para Excel con las columnas correctas
+            const datosExcel = registros.map(registro => {
+                // Extraer fecha y horario del registro
+                const fechaBarrido = registro.fechaTexto;
+                const horario = registro.horario;
+                const tipoHorario = registro.tipoHorario === 'manana' ? 'Mañana' : 'Tarde';
+                
+                // Crear objeto con las columnas que coinciden con Google Sheets
+                return {
+                    'FechaRegistro': new Date().toLocaleString('es-ES'),
+                    'CodigoAsesor': codigoAsesor,
+                    'Nombre': nombreAsesor,
+                    'Telefono': telefonoAsesor,
+                    'Email': emailAsesor,
+                    'Equipo': equipoAsesor,
+                    'FechaBarrido': fechaBarrido,
+                    'Horario': horario,
+                    'TipoHorario': tipoHorario,
+                    'Confirmacion': 'SÍ'
+                };
+            });
+            
+            // Crear libro de Excel
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(datosExcel);
+            
+            // Añadir hoja al libro
+            XLSX.utils.book_append_sheet(wb, ws, 'Mis Barridos');
+            
+            // Generar archivo y descargar
+            XLSX.writeFile(wb, `Constancia_Barridos_${codigoAsesor}_${new Date().toISOString().slice(0,10)}.xlsx`);
+        }
+        
+        // MODIFICACIÓN: Función para guardar registro completo en Google Sheets
+        async function guardarRegistroCompleto(datos) {
+            const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwmvo4gT3Q__DROv31esOzKZ8A4-41GRFtXNYIMtsdPT1G_2Kngpawv3GsLzEcvN7Oo/exec';
+            
+            console.log('📤 Enviando datos a Google Sheets...', datos);
+            
+            try {
+                // Para cada barrido registrado, enviar individualmente
+                for (const barrido of datos.registros) {
+                    const datosEnvio = {
+                        codigoAsesor: datos.codigoAsesor,
+                        nombre: datos.nombre,
+                        telefono: datos.telefono,
+                        email: datos.email,
+                        equipo: datos.equipo,
+                        fechaBarrido: barrido.fechaTexto,
+                        horario: barrido.horario,
+                        tipoHorario: barrido.tipoHorario,
+                        confirmacion: 'SÍ',
+                        timestamp: new Date().toISOString()
+                    };
+                    
+                    console.log('📨 Enviando:', datosEnvio);
+                    
+                    // USAR FETCH CON MANEJO DE ERRORES MEJORADO
+                    try {
+                        const response = await fetch(SCRIPT_URL, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(datosEnvio)
+                        });
+                        
+                        console.log('✅ Barrido registrado en Google Sheets:', datosEnvio.fechaBarrido, datosEnvio.horario);
+                        
+                        // Pequeña pausa entre envíos para evitar sobrecarga
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        
+                    } catch (error) {
+                        console.error('❌ Error al enviar barrido individual:', error);
+                        // Continuar con el siguiente barrido incluso si hay error
+                        continue;
+                    }
                 }
                 
-                // Obtener información del asesor desde los datos actuales del formulario
-                const nombreAsesor = datosAsesorActual.nombre || "Asesor";
-                const telefonoAsesor = datosAsesorActual.telefono || "";
-                const emailAsesor = datosAsesorActual.email || "";
-                const equipoAsesor = datosAsesorActual.equipo || "Equipo";
+                console.log('✅ Todos los barridos procesados');
+                return true;
                 
-                // Preparar datos para Excel con las columnas correctas
-                const datosExcel = registros.map(registro => {
-                    // Extraer fecha y horario del registro
-                    const fechaBarrido = registro.fechaTexto;
-                    const horario = registro.horario;
-                    const tipoHorario = registro.tipoHorario === 'manana' ? 'Mañana' : 'Tarde';
-                    
-                    // Crear objeto con las columnas que coinciden con Google Sheets
-                    return {
-                        'FechaRegistro': new Date().toLocaleString('es-ES'),
-                        'CodigoAsesor': codigoAsesor,
-                        'Nombre': nombreAsesor,
-                        'Telefono': telefonoAsesor,
-                        'Email': emailAsesor,
-                        'Equipo': equipoAsesor,
-                        'FechaBarrido': fechaBarrido,
-                        'Horario': horario,
-                        'TipoHorario': tipoHorario,
-                        'Confirmacion': 'SÍ'
-                    };
-                });
-                
-                // Crear libro de Excel
-                const wb = XLSX.utils.book_new();
-                const ws = XLSX.utils.json_to_sheet(datosExcel);
-                
-                // Añadir hoja al libro
-                XLSX.utils.book_append_sheet(wb, ws, 'Mis Barridos');
-                
-                // Generar archivo y descargar
-                XLSX.writeFile(wb, `Constancia_Barridos_${codigoAsesor}_${new Date().toISOString().slice(0,10)}.xlsx`);
+            } catch (error) {
+                console.error('❌ Error general al guardar en Google Sheets:', error);
+                throw error;
+            }
+        }
+
+        // Función para guardar localmente (backup)
+        function guardarRegistroLocal(datos) {
+            const registrosCompletos = JSON.parse(localStorage.getItem('registrosCompletos2025') || '[]');
+            registrosCompletos.push({
+                ...datos,
+                fechaRegistro: new Date().toLocaleString('es-ES'),
+                id: Date.now() + Math.random().toString(36).substr(2, 9)
             });
+            localStorage.setItem('registrosCompletos2025', JSON.stringify(registrosCompletos));
         }
 
         // Función para limpiar el formulario
@@ -1578,6 +1661,11 @@
             codigoAsesorInput.value = '';
             equipoSelect.value = '';
             document.getElementById('confirmacion').checked = false;
+            
+            // Limpiar registros locales del asesor
+            const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
+            delete registrosAsesores[codigoAsesorInput.value.trim()];
+            localStorage.setItem('registrosAsesores2025', JSON.stringify(registrosAsesores));
             
             // Limpiar datos del asesor actual
             datosAsesorActual = {
@@ -1592,7 +1680,7 @@
             generarCalendario();
         }
         
-        // Evento para el botón de registro
+        // Evento para el botón de registro (MODIFICADO)
         registroBtn.addEventListener('click', async function() {
             const nombre = document.getElementById('nombre').value;
             const telefono = document.getElementById('telefono').value;
@@ -1617,7 +1705,8 @@
                 return;
             }
             
-            const registros = await obtenerRegistrosAsesor(codigoAsesor);
+            const registrosAsesores = JSON.parse(localStorage.getItem('registrosAsesores2025') || '{}');
+            const registros = registrosAsesores[codigoAsesor] || [];
 
             if (registros.length === 0) {
                 alert('Por favor selecciona al menos un barrido en el calendario');
@@ -1629,8 +1718,21 @@
             registroBtn.disabled = true;
             
             try {
-                // Los registros ya están guardados en Google Sheets durante la selección
-                // Solo descargamos la constancia
+                // Preparar datos para guardar
+                const datosRegistro = {
+                    codigoAsesor: codigoAsesor,
+                    nombre: nombre,
+                    telefono: telefono,
+                    email: email,
+                    equipo: equipo,
+                    registros: registros
+                };
+                
+                // Guardar en Google Sheets
+                await guardarRegistroCompleto(datosRegistro);
+                
+                // También guardar localmente (backup)
+                guardarRegistroLocal(datosRegistro);
                 
                 // DESCARGAR CONSTANCIA AUTOMÁTICAMENTE
                 descargarConstanciaPersonal();
@@ -1641,6 +1743,19 @@
                 limpiarFormulario();
                 
             } catch (error) {
+                // Si hay error en Google Sheets, igual guardar localmente y descargar constancia
+                const datosRegistro = {
+                    codigoAsesor: codigoAsesor,
+                    nombre: nombre,
+                    telefono: telefono,
+                    email: email,
+                    equipo: equipo,
+                    registros: registros
+                };
+                
+                guardarRegistroLocal(datosRegistro);
+                descargarConstanciaPersonal();
+                
                 alert(`✅ ¡Registro exitoso!\n\nTe has registrado para ${registros.length} barrido(s).\n\nLos datos han sido guardados en el sistema y se ha descargado tu constancia.`);
                 
                 // Limpiar formulario
@@ -1651,15 +1766,35 @@
                 registroBtn.disabled = false;
             }
         });
-
-        // Cerrar modal
+        
+        // Inicializar
+        inicializarCupos();
+        generarCalendario();
+        actualizarResumen();
+        iniciarSincronizacionAutomatica();
+        
+        // Eventos para navegación del calendario
+        prevMesBtn.addEventListener('click', function() {
+            fechaActual.setMonth(fechaActual.getMonth() - 1);
+            generarCalendario();
+        });
+        
+        nextMesBtn.addEventListener('click', function() {
+            fechaActual.setMonth(fechaActual.getMonth() + 1);
+            generarCalendario();
+        });
+        
+        // Evento para cerrar modal
         closeModal.addEventListener('click', function() {
             modalHorarios.style.display = 'none';
         });
         
-        // Inicializar
-        generarCalendario();
-        actualizarResumen();
+        // Cerrar modal al hacer clic fuera del contenido
+        window.addEventListener('click', function(event) {
+            if (event.target === modalHorarios) {
+                modalHorarios.style.display = 'none';
+            }
+        });
     });
     </script>
 </body>
